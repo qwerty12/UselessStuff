@@ -1,0 +1,14 @@
+Index: top-39/libtop.c
+===================================================================
+--- top-39.orig/libtop.c
++++ top-39/libtop.c
+@@ -1661,6 +1661,9 @@ libtop_p_task_update(task_t a_task, bool
+ 		pinfo->psamp.vsize = ti.virtual_size;
+ 	}
+ 
++	if (pinfo->psamp.rprvt > 0xc0000000)
++            pinfo->psamp.rprvt = pinfo->psamp.p_rprvt;
++
+ 	/*
+ 	 * Get CPU usage statistics.
+ 	 */

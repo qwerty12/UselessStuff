@@ -1,0 +1,25 @@
+Index: top-39/libtop.c
+===================================================================
+--- top-39.orig/libtop.c
++++ top-39/libtop.c
+@@ -27,7 +27,6 @@
+ #include <mach/mach_error.h>
+ #include <mach/mach_host.h>
+ #include <mach/mach_port.h>
+-#include <mach/mach_vm.h>
+ #include <mach/mach_types.h>
+ #include <mach/message.h>
+ #include <mach/processor_set.h>
+@@ -36,6 +35,12 @@
+ #include <mach/shared_region.h>
+ #include <mach/vm_map.h>
+ 
++#define mach_vm_address_t vm_address_t
++#define mach_vm_read vm_read
++#define mach_vm_region vm_region
++#define mach_vm_region_recurse vm_region_recurse
++#define mach_vm_size_t vm_size_t
++
+ #define IOKIT 1 /* For io_name_t in device/device_types.h. */
+ #include <device/device_types.h>
+ #include <CoreFoundation/CoreFoundation.h>

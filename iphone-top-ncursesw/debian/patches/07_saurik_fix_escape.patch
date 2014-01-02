@@ -1,0 +1,13 @@
+Index: top-39/top.h
+===================================================================
+--- top-39.orig/top.h
++++ top-39/top.h
+@@ -174,7 +174,7 @@ extern boolean_t	top_opt_x;
+ #define FORMAT_TIME_HHMMSS   'w'
+ 
+ #define VALID_FORMATS "abcdefghijklmnopqrstuvw"
+-#define FORMAT_ESCAPE        '\'
++#define FORMAT_ESCAPE        '\\'
+ #define FORMAT_LEFT          '^'
+ #define FORMAT_RIGHT         '$'
+ #define FORMAT_DELTA         '-'

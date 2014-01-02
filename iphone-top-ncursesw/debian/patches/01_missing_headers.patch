@@ -1,0 +1,2602 @@
+Index: top-39/IOKit/storage/IOBlockStorageDriver.h
+===================================================================
+--- /dev/null
++++ top-39/IOKit/storage/IOBlockStorageDriver.h
+@@ -0,0 +1,1546 @@
++/*
++ * Copyright (c) 1998-2013 Apple Inc. All rights reserved.
++ *
++ * @APPLE_LICENSE_HEADER_START@
++ * 
++ * This file contains Original Code and/or Modifications of Original Code
++ * as defined in and that are subject to the Apple Public Source License
++ * Version 2.0 (the 'License'). You may not use this file except in
++ * compliance with the License. Please obtain a copy of the License at
++ * http://www.opensource.apple.com/apsl/ and read it before using this
++ * file.
++ * 
++ * The Original Code and all software distributed under the License are
++ * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
++ * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
++ * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
++ * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
++ * Please see the License for the specific language governing rights and
++ * limitations under the License.
++ * 
++ * @APPLE_LICENSE_HEADER_END@
++ */
++
++/*!
++ * @header IOBlockStorageDriver
++ * @abstract
++ * This header contains the IOBlockStorageDriver class definition.
++ */
++
++#ifndef _IOBLOCKSTORAGEDRIVER_H
++#define _IOBLOCKSTORAGEDRIVER_H
++
++#include <IOKit/IOTypes.h>
++
++/*!
++ * @defined kIOBlockStorageDriverClass
++ * @abstract
++ * The name of the IOBlockStorageDriver class.
++ */
++
++#define kIOBlockStorageDriverClass "IOBlockStorageDriver"
++
++/*!
++ * @defined kIOBlockStorageDriverStatisticsKey
++ * @abstract
++ * Holds a table of numeric values describing the driver's
++ * operating statistics.
++ * @discussion
++ * This property holds a table of numeric values describing the driver's
++ * operating statistics.  The table is an OSDictionary, where each entry
++ * describes one given statistic.
++ */
++
++#define kIOBlockStorageDriverStatisticsKey "Statistics"
++
++/*!
++ * @defined kIOBlockStorageDriverStatisticsBytesReadKey
++ * @abstract
++ * Describes the number of bytes read since the block storage
++ * driver was instantiated.
++ * @discussion
++ * This property describes the number of bytes read since the block storage
++ * driver was instantiated.  It is one of the statistic entries listed under
++ * the top-level kIOBlockStorageDriverStatisticsKey property table.  It has
++ * an OSNumber value.
++ */
++
++#define kIOBlockStorageDriverStatisticsBytesReadKey "Bytes (Read)"
++
++/*!
++ * @defined kIOBlockStorageDriverStatisticsBytesWrittenKey
++ * @abstract
++ * Describes the number of bytes written since the block storage
++ * driver was instantiated. 
++ * @discussion
++ * This property describes the number of bytes written since the block storage
++ * driver was instantiated.  It is one of the statistic entries listed under the
++ * top-level kIOBlockStorageDriverStatisticsKey property table.  It has an
++ * OSNumber value.
++ */
++
++#define kIOBlockStorageDriverStatisticsBytesWrittenKey "Bytes (Write)"
++
++/*!
++ * @defined kIOBlockStorageDriverStatisticsReadErrorsKey
++ * @abstract
++ * Describes the number of read errors encountered since the block
++ * storage driver was instantiated. 
++ * @discussion
++ * This property describes the number of read errors encountered since the block
++ * storage driver was instantiated.  It is one of the statistic entries listed
++ * under the top-level kIOBlockStorageDriverStatisticsKey property table.  It
++ * has an OSNumber value.
++ */
++
++#define kIOBlockStorageDriverStatisticsReadErrorsKey "Errors (Read)"
++
++/*!
++ * @defined kIOBlockStorageDriverStatisticsWriteErrorsKey
++ * @abstract
++ * Describes the number of write errors encountered since the
++ * block storage driver was instantiated.
++ * @discussion
++ * This property describes the number of write errors encountered since the
++ * block storage driver was instantiated.  It is one of the statistic entries
++ * listed under the top-level kIOBlockStorageDriverStatisticsKey property table. 
++ * It has an OSNumber value.
++ */
++
++#define kIOBlockStorageDriverStatisticsWriteErrorsKey "Errors (Write)"
++
++/*!
++ * @defined kIOBlockStorageDriverStatisticsLatentReadTimeKey
++ * @abstract
++ * Describes the number of nanoseconds of latency during reads
++ * since the block storage driver was instantiated. 
++ * @discussion
++ * This property describes the number of nanoseconds of latency during reads
++ * since the block storage driver was instantiated.  It is one of the statistic
++ * entries listed under the top-level kIOBlockStorageDriverStatisticsKey
++ * property table.  It has an OSNumber value.
++ */
++
++#define kIOBlockStorageDriverStatisticsLatentReadTimeKey "Latency Time (Read)"
++
++/*!
++ * @defined kIOBlockStorageDriverStatisticsLatentWriteTimeKey
++ * @abstract
++ * Describes the number of nanoseconds of latency during writes
++ * since the block storage driver was instantiated. 
++ * @discussion
++ * This property describes the number of nanoseconds of latency during writes
++ * since the block storage driver was instantiated.  It is one of the statistic
++ * entries listed under the top-level kIOBlockStorageDriverStatisticsKey
++ * property table.  It has an OSNumber value.
++ */
++
++#define kIOBlockStorageDriverStatisticsLatentWriteTimeKey "Latency Time (Write)"
++
++/*!
++ * @defined kIOBlockStorageDriverStatisticsReadsKey
++ * @abstract
++ * Describes the number of read operations processed since the
++ * block storage driver was instantiated.
++ * @discussion
++ * This property describes the number of read operations processed since the
++ * block storage driver was instantiated.  It is one of the statistic entries
++ * listed under the top-level kIOBlockStorageDriverStatisticsKey property table.
++ * It has an OSNumber value.
++ */
++
++#define kIOBlockStorageDriverStatisticsReadsKey "Operations (Read)"
++
++/*!
++ * @defined kIOBlockStorageDriverStatisticsWritesKey
++ * @abstract
++ * Describes the number of write operations processed since the
++ * block storage driver was instantiated.
++ * @discussion
++ * This property describes the number of write operations processed since the
++ * block storage driver was instantiated.  It is one of the statistic entries
++ * listed under the top-level kIOBlockStorageDriverStatisticsKey property table.
++ * It has an OSNumber value.
++ */
++
++#define kIOBlockStorageDriverStatisticsWritesKey "Operations (Write)"
++
++/*!
++ * @defined kIOBlockStorageDriverStatisticsReadRetriesKey
++ * @abstract
++ * Describes the number of read retries required since the block
++ * storage driver was instantiated.
++ * @discussion
++ * This property describes the number of read retries required since the block
++ * storage driver was instantiated.  It is one of the statistic entries listed
++ * under the top-level kIOBlockStorageDriverStatisticsKey property table.  It
++ * has an OSNumber value.
++ */
++
++#define kIOBlockStorageDriverStatisticsReadRetriesKey "Retries (Read)"
++
++/*!
++ * @defined kIOBlockStorageDriverStatisticsWriteRetriesKey
++ * @abstract
++ * Describes the number of write retries required since the block
++ * storage driver was instantiated.
++ * @discussion
++ * This property describes the number of write retries required since the block
++ * storage driver was instantiated.  It is one of the statistic entries listed
++ * under the top-level kIOBlockStorageDriverStatisticsKey property table.  It
++ * has an OSNumber value.
++ */
++
++#define kIOBlockStorageDriverStatisticsWriteRetriesKey "Retries (Write)"
++
++/*!
++ * @defined kIOBlockStorageDriverStatisticsTotalReadTimeKey
++ * @abstract
++ * Describes the number of nanoseconds spent performing reads
++ * since the block storage driver was instantiated.
++ * @discussion
++ * This property describes the number of nanoseconds spent performing reads
++ * since the block storage driver was instantiated.  It is one of the statistic
++ * entries listed under the top-level kIOBlockStorageDriverStatisticsKey
++ * property table.  It has an OSNumber value.
++ */
++
++#define kIOBlockStorageDriverStatisticsTotalReadTimeKey "Total Time (Read)"
++
++/*!
++ * @defined kIOBlockStorageDriverStatisticsTotalWriteTimeKey
++ * @abstract
++ * Describes the number of nanoseconds spent performing writes
++ * since the block storage driver was instantiated.
++ * @discussion
++ * This property describes the number of nanoseconds spent performing writes
++ * since the block storage driver was instantiated.  It is one of the statistic
++ * entries listed under the top-level kIOBlockStorageDriverStatisticsKey
++ * property table.  It has an OSNumber value.
++ */
++
++#define kIOBlockStorageDriverStatisticsTotalWriteTimeKey "Total Time (Write)"
++
++/*!
++ * @enum IOMediaState
++ * @abstract
++ * The different states that getMediaState() can report.
++ * @constant kIOMediaStateOffline
++ * Media is not available.
++ * @constant kIOMediaStateOnline
++ * Media is available and ready for operations.
++ * @constant kIOMediaStateBusy
++ * Media is available, but not ready for operations.
++ */
++
++enum
++{
++    kIOMediaStateOffline = 0,
++    kIOMediaStateOnline  = 1,
++    kIOMediaStateBusy    = 2
++};
++
++typedef UInt32 IOMediaState;
++
++#ifdef KERNEL
++#ifdef __cplusplus
++
++/*
++ * Kernel
++ */
++
++#include <IOKit/storage/IOBlockStorageDevice.h>
++#include <IOKit/storage/IOMedia.h>
++#include <IOKit/storage/IOStorage.h>
++
++/*!
++ * @class IOBlockStorageDriver
++ * @abstract
++ * The common base class for generic block storage drivers.
++ * @discussion
++ * The IOBlockStorageDriver class is the common base class for generic block
++ * storage drivers.  It matches and communicates via an IOBlockStorageDevice
++ * interface, and connects to the remainder of the storage framework via the
++ * IOStorage protocol. It extends the IOStorage protocol by implementing the
++ * appropriate open and close semantics, deblocking for unaligned transfers,
++ * polling for ejectable media, locking and ejection policies, media object
++ * creation and tear-down, and statistics gathering and reporting.
++ *
++ * Block storage drivers are split into two parts: the generic driver handles
++ * all generic device issues, independent of the lower-level transport
++ * mechanism (e.g. SCSI, ATA, USB, FireWire). All storage operations
++ * at the generic driver level are translated into a series of generic
++ * device operations. These operations are passed via the IOBlockStorageDevice
++ * nub to a transport driver, which implements the appropriate
++ * transport-dependent protocol to execute these operations.
++ *
++ * To determine the write-protect state of a device (or media), for
++ * example, the generic driver would issue a call to the
++ * Transport Driver's reportWriteProtection method. If this were a SCSI
++ * device, its transport driver would issue a Mode Sense command to
++ * extract the write-protection status bit. The transport driver then
++ * reports true or false to the generic driver.
++ * 
++ * The generic driver therefore has no knowledge of, or involvement
++ * with, the actual commands and mechanisms used to communicate with
++ * the device. It is expected that the generic driver will rarely, if
++ * ever, need to be subclassed to handle device idiosyncrasies; rather,
++ * the transport driver should be changed via overrides.
++ * 
++ * A generic driver could be subclassed to create a different type of
++ * generic device. The generic driver IOCDBlockStorageDriver class is
++ * a subclass of IOBlockStorageDriver, adding CD functions.
++ */
++
++class IOBlockStorageDriver : public IOStorage
++{
++    OSDeclareDefaultStructors(IOBlockStorageDriver);
++
++public:
++
++    /*!
++     * @enum Statistics
++     * @abstract
++     * Indices for the different statistics that getStatistics() can report.
++     * @constant kStatisticsReads Number of read operations thus far.
++     * @constant kStatisticsBytesRead Number of bytes read thus far.
++     * @constant kStatisticsTotalReadTime Nanoseconds spent performing reads thus far.
++     * @constant kStatisticsLatentReadTime Nanoseconds of latency during reads thus far.
++     * @constant kStatisticsReadRetries Number of read retries thus far.
++     * @constant kStatisticsReadErrors Number of read errors thus far.
++     * @constant kStatisticsWrites Number of write operations thus far.
++     * @constant kStatisticsSingleBlockWrites Number of write operations for a single block thus far.
++     * @constant kStatisticsBytesWritten Number of bytes written thus far.
++     * @constant kStatisticsTotalWriteTime Nanoseconds spent performing writes thus far.
++     * @constant kStatisticsLatentWriteTime Nanoseconds of latency during writes thus far.
++     * @constant kStatisticsWriteRetries Number of write retries thus far.
++     * @constant kStatisticsWriteErrors Number of write errors thus far.
++     */
++
++    enum Statistics
++    {
++        kStatisticsReads,
++        kStatisticsBytesRead,
++        kStatisticsTotalReadTime,
++        kStatisticsLatentReadTime,
++        kStatisticsReadRetries,
++        kStatisticsReadErrors,
++
++        kStatisticsWrites,
++        kStatisticsSingleBlockWrites,
++        kStatisticsBytesWritten,
++        kStatisticsTotalWriteTime,
++        kStatisticsLatentWriteTime,
++        kStatisticsWriteRetries,
++        kStatisticsWriteErrors
++    };
++
++    static const UInt32 kStatisticsCount = kStatisticsWriteErrors + 1;
++
++protected:
++
++    struct Context;
++
++    struct ExpansionData
++    {
++#ifdef __LP64__
++        UInt64         reserved0000;
++#else /* !__LP64__ */
++        UInt32         reserved0000;
++#endif /* !__LP64__ */
++        UInt64         maxReadBlockTransfer;
++        UInt64         maxWriteBlockTransfer;
++        IONotifier *   powerEventNotifier;
++        UInt32         deblockRequestWriteLockCount;
++        UInt64         maxReadSegmentTransfer;
++        UInt64         maxWriteSegmentTransfer;
++        UInt64         maxReadSegmentByteTransfer;
++        UInt64         maxWriteSegmentByteTransfer;
++        UInt64         minSegmentAlignmentByteTransfer;
++        UInt64         maxSegmentWidthByteTransfer;
++        Context *      contexts;
++        IOSimpleLock * contextsLock;
++        UInt32         contextsCount;
++        UInt32         contextsMaxCount;
++    };
++    ExpansionData * _expansionData;
++
++    #define _maxReadBlockTransfer            \
++              IOBlockStorageDriver::_expansionData->maxReadBlockTransfer
++    #define _maxWriteBlockTransfer           \
++              IOBlockStorageDriver::_expansionData->maxWriteBlockTransfer
++    #define _powerEventNotifier              \
++              IOBlockStorageDriver::_expansionData->powerEventNotifier
++    #define _deblockRequestWriteLockCount    \
++              IOBlockStorageDriver::_expansionData->deblockRequestWriteLockCount
++    #define _maxReadSegmentTransfer          \
++              IOBlockStorageDriver::_expansionData->maxReadSegmentTransfer
++    #define _maxWriteSegmentTransfer         \
++              IOBlockStorageDriver::_expansionData->maxWriteSegmentTransfer
++    #define _maxReadSegmentByteTransfer      \
++              IOBlockStorageDriver::_expansionData->maxReadSegmentByteTransfer
++    #define _maxWriteSegmentByteTransfer     \
++              IOBlockStorageDriver::_expansionData->maxWriteSegmentByteTransfer
++    #define _minSegmentAlignmentByteTransfer \
++              IOBlockStorageDriver::_expansionData->minSegmentAlignmentByteTransfer
++    #define _maxSegmentWidthByteTransfer     \
++              IOBlockStorageDriver::_expansionData->maxSegmentWidthByteTransfer
++    #define _contexts                        \
++              IOBlockStorageDriver::_expansionData->contexts
++    #define _contextsLock                    \
++              IOBlockStorageDriver::_expansionData->contextsLock
++    #define _contextsCount                   \
++              IOBlockStorageDriver::_expansionData->contextsCount
++    #define _contextsMaxCount                \
++              IOBlockStorageDriver::_expansionData->contextsMaxCount
++
++    OSSet *         _openClients;
++    OSNumber *      _statistics[kStatisticsCount];
++
++    /*
++     * @struct Context
++     * @discussion
++     * Context structure for a read/write operation.  It describes the block size,
++     * and where applicable, a block type and block sub-type, for a data transfer,
++     * as well as the completion information for the original request.  Note that
++     * the block type field is unused in the IOBlockStorageDriver class.
++     * @field block.size
++     * Block size for the operation.
++     * @field block.type
++     * Block type for the operation.  Unused in IOBlockStorageDriver.  The default
++     * value for this field is IOBlockStorageDriver::kBlockTypeStandard.
++     * @field block.typeSub
++     * Block sub-type for the operation.  It's definition depends on block.type.
++     * Unused in IOBlockStorageDriver.
++     * @field request.byteStart
++     * Starting byte offset for the data transfer.
++     * @param request.buffer
++     * Buffer for the data transfer.  The size of the buffer implies the size of
++     * the data transfer.
++     * @param request.attributes
++     * Attributes of the data transfer.  See IOStorageAttributes.
++     * @param request.completion
++     * Completion routine to call once the data transfer is complete.
++     */
++
++    struct Context
++    {
++#ifdef __LP64__
++        struct
++        {
++            UInt64               byteStart;
++            IOMemoryDescriptor * buffer;
++            IOStorageAttributes  attributes;
++            IOStorageCompletion  completion;
++        } request;
++
++        struct
++        {
++            UInt32               size;
++            UInt8                type;
++            UInt8                typeSub[3];
++        } block;
++
++        AbsoluteTime timeStart;
++
++        UInt64 reserved0704;
++        UInt64 reserved0768;
++        UInt64 reserved0832;
++        UInt64 reserved0896;
++#else /* !__LP64__ */
++        struct
++        {
++            UInt32               size;
++            UInt8                type;
++            UInt8                typeSub[3];
++        } block;
++
++        struct
++        {
++            UInt64               byteStart;
++            IOMemoryDescriptor * buffer;
++            IOStorageCompletion  completion;
++        } original;
++
++        AbsoluteTime timeStart;
++
++        struct
++        {
++            IOStorageAttributes  attributes;
++        } request;
++
++        UInt32 reserved0448;
++#endif /* !__LP64__ */
++
++        Context * next;
++    };
++
++    static const UInt8 kBlockTypeStandard = 0x00;
++
++    using IOService::open;
++
++    /*
++     * Free all of this object's outstanding resources.
++     *
++     * This method's implementation is not typically overridden.
++     */
++
++    void free();
++
++    /*!
++     * @function handleOpen
++     * @discussion
++     * The handleOpen method grants or denies permission to access this object
++     * to an interested client.  The argument is an IOStorageAccess value that
++     * specifies the level of access desired -- reader or reader-writer.
++     *
++     * This method can be invoked to upgrade or downgrade the access level for
++     * an existing client as well.  The previous access level will prevail for
++     * upgrades that fail, of course.   A downgrade should never fail.  If the
++     * new access level should be the same as the old for a given client, this
++     * method will do nothing and return success.  In all cases, one, singular
++     * close-per-client is expected for all opens-per-client received.
++     *
++     * This implementation replaces the IOService definition of handleIsOpen().
++     * @param client
++     * Client requesting the open.
++     * @param options
++     * Options for the open.  Set to zero.
++     * @param access
++     * Access level for the open.  Set to kIOStorageAccessReader or
++     * kIOStorageAccessReaderWriter.
++     * @result
++     * Returns true if the open was successful, false otherwise.
++     */
++
++    virtual bool handleOpen(IOService *  client,
++                            IOOptionBits options,
++                            void *       access);
++
++    /*!
++     * @function handleIsOpen
++     * @discussion
++     * The handleIsOpen method determines whether the specified client, or any
++     * client if none is specified, presently has an open on this object.
++     *
++     * This implementation replaces the IOService definition of handleIsOpen().
++     * @param client
++     * Client to check the open state of.  Set to zero to check the open state
++     * of all clients.
++     * @result
++     * Returns true if the client was (or clients were) open, false otherwise.
++     */
++
++    virtual bool handleIsOpen(const IOService * client) const;
++
++    /*!
++     * @function handleClose
++     * @discussion
++     * The handleClose method closes the client's access to this object.
++     *
++     * This implementation replaces the IOService definition of handleIsOpen().
++     * @param client
++     * Client requesting the close.
++     * @param options
++     * Options for the close.  Set to zero.
++     */
++
++    virtual void handleClose(IOService * client, IOOptionBits options);
++
++    /*!
++     * @function addToBytesTransferred
++     * @discussion
++     * Update the total number of bytes transferred, the total transfer time,
++     * and the total latency time -- used for statistics.
++     *
++     * This method's implementation is not typically overridden.
++     * @param bytesTransferred
++     * Number of bytes transferred in this operation.
++     * @param totalTime
++     * Nanoseconds spent performing this operation.
++     * @param latentTime
++     * Nanoseconds of latency during this operation.
++     * @param isWrite
++     * Indicates whether this operation was a write, otherwise is was a read.
++     */
++
++    virtual void addToBytesTransferred(UInt64 bytesTransferred,
++                                       UInt64 totalTime,
++                                       UInt64 latentTime,
++                                       bool   isWrite);
++
++    /*!
++     * @function incrementErrors
++     * @discussion
++     * Update the total error count -- used for statistics.
++     *
++     * This method's implementation is not typically overridden.
++     * @param isWrite
++     * Indicates whether this operation was a write, otherwise is was a read.
++     */
++
++    virtual void incrementErrors(bool isWrite);
++
++    /*!
++     * @function incrementRetries
++     * @discussion
++     * Update the total retry count -- used for statistics.
++     *
++     * This method's implementation is not typically overridden.
++     * @param isWrite
++     * Indicates whether this operation was a write, otherwise is was a read.
++     */
++
++    virtual void incrementRetries(bool isWrite);
++
++    /*!
++     * @function allocateContext
++     * @discussion
++     * Allocate a context structure for a read/write operation.
++     * @result
++     * Context structure.
++     */
++
++    virtual Context * allocateContext();
++
++    /*!
++     * @function deleteContext
++     * @discussion
++     * Delete a context structure from a read/write operation.
++     * @param context
++     * Context structure to be deleted.
++     */
++
++    virtual void deleteContext(Context * context);
++
++#ifndef __LP64__
++    virtual void prepareRequest(UInt64               byteStart,
++                                IOMemoryDescriptor * buffer,
++                                IOStorageCompletion  completion) __attribute__ ((deprecated));
++#endif /* !__LP64__ */
++
++    /*!
++     * @function deblockRequest
++     * @discussion
++     * The deblockRequest method checks to see if the incoming request rests
++     * on the media's block boundaries, and if not, deblocks it.  Deblocking
++     * involves rounding out the request to the nearest block boundaries and
++     * transferring the excess bytes into a scratch buffer.
++     *
++     * This method is part of a sequence of methods invoked for each read/write
++     * request.  The first is prepareRequest, which allocates and prepares some
++     * context for the transfer; the second is deblockRequest, which aligns the
++     * transfer at the media's block boundaries; third is breakUpRequest, which
++     * breaks up the transfer into multiple sub-transfers when certain hardware
++     * constraints are exceeded; fourth is executeRequest, which implements the
++     * actual transfer from the block storage device.
++     *
++     * This method's implementation is not typically overridden.
++     * @param byteStart
++     * Starting byte offset for the data transfer.
++     * @param buffer
++     * Buffer for the data transfer.  The size of the buffer implies the size of
++     * the data transfer.
++     * @param attributes
++     * Attributes of the data transfer.  See IOStorageAttributes.  It is the
++     * responsibility of the callee to maintain the information for the duration
++     * of the data transfer, as necessary.
++     * @param completion
++     * Completion routine to call once the data transfer is complete.  It is the
++     * responsibility of the callee to maintain the information for the duration
++     * of the data transfer, as necessary.
++     * @param context
++     * Additional context information for the data transfer (e.g. block size).
++     */
++
++#ifdef __LP64__
++    virtual void deblockRequest(UInt64                byteStart,
++                                IOMemoryDescriptor *  buffer,
++                                IOStorageAttributes * attributes,
++                                IOStorageCompletion * completion,
++                                Context *             context);
++#else /* !__LP64__ */
++    virtual void deblockRequest(UInt64                byteStart,
++                                IOMemoryDescriptor *  buffer,
++                                IOStorageCompletion   completion,
++                                Context *             context);
++#endif /* !__LP64__ */
++
++    /*!
++     * @function executeRequest
++     * @discussion
++     * Execute an asynchronous storage request.  The request is guaranteed to be
++     * block-aligned.
++     *
++     * This method is part of a sequence of methods invoked for each read/write
++     * request.  The first is prepareRequest, which allocates and prepares some
++     * context for the transfer; the second is deblockRequest, which aligns the
++     * transfer at the media's block boundaries; third is breakUpRequest, which
++     * breaks up the transfer into multiple sub-transfers when certain hardware
++     * constraints are exceeded; fourth is executeRequest, which implements the
++     * actual transfer from the block storage device.
++     * @param byteStart
++     * Starting byte offset for the data transfer.
++     * @param buffer
++     * Buffer for the data transfer.  The size of the buffer implies the size of
++     * the data transfer.
++     * @param attributes
++     * Attributes of the data transfer.  See IOStorageAttributes.  It is the
++     * responsibility of the callee to maintain the information for the duration
++     * of the data transfer, as necessary.
++     * @param completion
++     * Completion routine to call once the data transfer is complete.  It is the
++     * responsibility of the callee to maintain the information for the duration
++     * of the data transfer, as necessary.
++     * @param context
++     * Additional context information for the data transfer (e.g. block size).
++     */
++
++#ifdef __LP64__
++    virtual void executeRequest(UInt64                byteStart,
++                                IOMemoryDescriptor *  buffer,
++                                IOStorageAttributes * attributes,
++                                IOStorageCompletion * completion,
++                                Context *             context);
++#else /* !__LP64__ */
++    virtual void executeRequest(UInt64                byteStart,
++                                IOMemoryDescriptor *  buffer,
++                                IOStorageCompletion   completion,
++                                Context *             context);
++#endif /* !__LP64__ */
++
++    /*!
++     * @function handleStart
++     * @discussion
++     * Prepare the block storage driver for operation.
++     *
++     * This is where a media object needs to be created for fixed media, and
++     * optionally for removable media.
++     *
++     * Note that this method is called from within the start() routine;
++     * if this method returns successfully,  it should be prepared to accept
++     * any of IOBlockStorageDriver's APIs.
++     * @param provider
++     * This object's provider.
++     * @result
++     * Returns true on success, false otherwise.
++     */
++
++    virtual bool handleStart(IOService * provider);
++
++    virtual bool handleYield(IOService *  provider,
++                             IOOptionBits options  = 0,
++                             void *       argument = 0) __attribute__ ((deprecated));
++
++    /*!
++     * @function getMediaBlockSize
++     * @discussion
++     * Ask the driver about the media's natural block size.
++     * @result
++     * Natural block size, in bytes.
++     */
++
++    virtual UInt64 getMediaBlockSize() const;
++
++public:
++
++    using IOStorage::open;
++    using IOStorage::read;
++    using IOStorage::write;
++
++    /*
++     * Initialize this object's minimal state.
++     *
++     * This method's implementation is not typically overridden.
++     */
++
++    virtual bool init(OSDictionary * properties = 0);
++
++    /*
++     * This method is called once we have been attached to the provider object.
++     *
++     * This method's implementation is not typically overridden.
++     */
++
++    virtual bool start(IOService * provider);
++
++    /*
++     * This method is called before we are detached from the provider object.
++     *
++     * This method's implementation is not typically overridden.
++     */
++
++    virtual void stop(IOService * provider);
++
++    virtual bool didTerminate(IOService *  provider,
++                              IOOptionBits options,
++                              bool *       defer);
++
++    virtual bool yield(IOService *  provider,
++                       IOOptionBits options  = 0,
++                       void *       argument = 0) __attribute__ ((deprecated));
++
++    /*!
++     * @function read
++     * @discussion
++     * The read method is the receiving end for all read requests from the
++     * storage framework (through the media object created by this driver).
++     *
++     * This method initiates a sequence of methods (stages) for each read/write
++     * request.  The first is prepareRequest, which allocates and prepares some
++     * context for the transfer; the second is deblockRequest, which aligns the
++     * transfer at the media's block boundaries; third is breakUpRequest, which
++     * breaks up the transfer into multiple sub-transfers when certain hardware
++     * constraints are exceeded; fourth is executeRequest, which implements the
++     * actual transfer from the block storage device.
++     *
++     * This method's implementation is not typically overridden.
++     * @param client
++     * Client requesting the read.
++     * @param byteStart
++     * Starting byte offset for the data transfer.
++     * @param buffer
++     * Buffer for the data transfer.  The size of the buffer implies the size of
++     * the data transfer.
++     * @param attributes
++     * Attributes of the data transfer.  See IOStorageAttributes.  It is the
++     * responsibility of the callee to maintain the information for the duration
++     * of the data transfer, as necessary.
++     * @param completion
++     * Completion routine to call once the data transfer is complete.  It is the
++     * responsibility of the callee to maintain the information for the duration
++     * of the data transfer, as necessary.
++     */
++
++    virtual void read(IOService *           client,
++                      UInt64                byteStart,
++                      IOMemoryDescriptor *  buffer,
++                      IOStorageAttributes * attributes,
++                      IOStorageCompletion * completion);
++
++    /*!
++     * @function write
++     * @discussion
++     * The write method is the receiving end for all write requests from the
++     * storage framework (through the media object created by this driver).
++     *
++     * This method initiates a sequence of methods (stages) for each read/write
++     * request.  The first is prepareRequest, which allocates and prepares some
++     * context for the transfer; the second is deblockRequest, which aligns the
++     * transfer at the media's block boundaries; third is breakUpRequest, which
++     * breaks up the transfer into multiple sub-transfers when certain hardware
++     * constraints are exceeded; fourth is executeRequest, which implements the
++     * actual transfer from the block storage device.
++     *
++     * This method's implementation is not typically overridden.
++     * @param client
++     * Client requesting the write.
++     * @param byteStart
++     * Starting byte offset for the data transfer.
++     * @param buffer
++     * Buffer for the data transfer.  The size of the buffer implies the size of
++     * the data transfer.
++     * @param attributes
++     * Attributes of the data transfer.  See IOStorageAttributes.  It is the
++     * responsibility of the callee to maintain the information for the duration
++     * of the data transfer, as necessary.
++     * @param completion
++     * Completion routine to call once the data transfer is complete.  It is the
++     * responsibility of the callee to maintain the information for the duration
++     * of the data transfer, as necessary.
++     */
++
++    virtual void write(IOService *           client,
++                       UInt64                byteStart,
++                       IOMemoryDescriptor *  buffer,
++                       IOStorageAttributes * attributes,
++                       IOStorageCompletion * completion);
++
++    /*!
++     * @function synchronizeCache
++     * @discussion
++     * Flush the cached data in the storage object, if any, synchronously.
++     * @param client
++     * Client requesting the cache synchronization.
++     * @result
++     * Returns the status of the cache synchronization.
++     */
++
++    virtual IOReturn synchronizeCache(IOService * client);
++
++    /*!
++     * @function unmap
++     * @discussion
++     * Delete unused data from the storage object at the specified byte offsets,
++     * synchronously.
++     * @param client
++     * Client requesting the operation.
++     * @param extents
++     * List of extents.  See IOStorageExtent.  It is legal for the callee to
++     * overwrite the contents of this buffer in order to satisfy the request.
++     * @param extentsCount
++     * Number of extents.
++     * @result
++     * Returns the status of the operation.
++     */
++
++    virtual IOReturn unmap(IOService *       client,
++                           IOStorageExtent * extents,
++                           UInt32            extentsCount,
++                           UInt32            options = 0);
++
++    /*!
++     * @function lockPhysicalExtents
++     * @discussion
++     * Lock the contents of the storage object against relocation temporarily,
++     * for the purpose of getting physical extents.
++     * @param client
++     * Client requesting the operation.
++     * @result
++     * Returns true if the lock was successful, false otherwise.
++     */
++
++    virtual bool lockPhysicalExtents(IOService * client);
++
++    /*!
++     * @function copyPhysicalExtent
++     * @discussion
++     * Convert the specified byte offset into a physical byte offset, relative
++     * to a physical storage object.  This call should only be made within the
++     * context of lockPhysicalExtents().
++     * @param client
++     * Client requesting the operation.
++     * @param byteStart
++     * Starting byte offset for the operation.  Returns a physical byte offset,
++     * relative to the physical storage object, on success.
++     * @param byteCount
++     * Size of the operation.  Returns the actual number of bytes which can be
++     * transferred, relative to the physical storage object, on success. 
++     * @result
++     * A reference to the physical storage object, which should be released by
++     * the caller, or a null on error.
++     */
++
++    virtual IOStorage * copyPhysicalExtent(IOService * client,
++                                           UInt64 *    byteStart,
++                                           UInt64 *    byteCount);
++
++    /*!
++     * @function unlockPhysicalExtents
++     * @discussion
++     * Unlock the contents of the storage object for relocation again.  This
++     * call must balance a successful call to lockPhysicalExtents().
++     * @param client
++     * Client requesting the operation.
++     */
++
++    virtual void unlockPhysicalExtents(IOService * client);
++
++    /*!
++     * @function ejectMedia
++     * @discussion
++     * Eject the media from the device.  The driver is responsible for tearing
++     * down the media object it created before proceeding with the eject.   If
++     * the tear-down fails, an error should be returned.
++     * @result
++     * An IOReturn code.
++     */
++
++    virtual IOReturn ejectMedia();
++
++    /*!
++     * @function formatMedia
++     * @discussion
++     * Format the media with the specified byte capacity.  The driver is
++     * responsible for tearing down the media object and recreating it.
++     * @param byteCapacity
++     * Number of bytes to format media to.
++     * @result
++     * An IOReturn code.
++     */
++
++    virtual IOReturn formatMedia(UInt64 byteCapacity);
++
++    virtual IOReturn lockMedia(bool lock) __attribute__ ((deprecated));
++
++    virtual IOReturn pollMedia() __attribute__ ((deprecated));
++
++    /*!
++     * @function isMediaEjectable
++     * @discussion
++     * Ask the driver whether the media is ejectable.
++     * @result
++     * Returns true if the media is ejectable, false otherwise.
++     */
++
++    virtual bool isMediaEjectable() const;
++
++#ifdef __LP64__
++    /*!
++     * @function isMediaRemovable
++     * @discussion
++     * Ask the driver whether the media is ejectable.
++     * @result
++     * Returns true if the media is ejectable, false otherwise.
++     */
++
++    virtual bool isMediaRemovable() const;
++#endif /* __LP64__ */
++
++    virtual bool isMediaPollExpensive() const __attribute__ ((deprecated));
++
++    virtual bool isMediaPollRequired() const __attribute__ ((deprecated));
++
++    /*!
++     * @function isMediaWritable
++     * @discussion
++     * Ask the driver whether the media is writable.
++     * @result
++     * Returns true if the media is writable, false otherwise.
++     */
++
++    virtual bool isMediaWritable() const;
++
++    /*!
++     * @function getMediaState
++     * @discussion
++     * Ask the driver about the media's current state.
++     * @result
++     * An IOMediaState value.
++     */
++
++    virtual IOMediaState getMediaState() const;
++
++    /*!
++     * @function getFormatCapacities
++     * @discussion
++     * Ask the driver to report the feasible formatting capacities for the
++     * inserted media (in bytes).  This routine fills the caller's buffer,
++     * up to the maximum count specified if the real number of capacities
++     * would overflow the buffer.   The return value indicates the actual
++     * number of capacities copied to the buffer.
++     *
++     * If the capacities buffer is not supplied or if the maximum count is
++     * zero, the routine returns the proposed count of capacities instead.
++     * @param capacities
++     * Buffer that will receive the UInt64 capacity values.
++     * @param capacitiesMaxCount
++     * Maximum number of capacity values that can be held in the buffer.
++     * @result
++     * Actual number of capacity values copied to the buffer, or if no buffer
++     * is given, the total number of capacity values available.
++     */
++
++    virtual UInt32 getFormatCapacities(UInt64 * capacities,
++                                       UInt32   capacitiesMaxCount) const;
++
++    /*!
++     * @function getStatistics
++     * @discussion
++     * Ask the driver to report its operating statistics.
++     *
++     * The statistics are each indexed by IOBlockStorageDriver::Statistics
++     * indices.  This routine fills the caller's buffer, up to the maximum
++     * count specified if the real number of statistics would overflow the
++     * buffer.  The return value indicates the actual number of statistics
++     * copied to the buffer.
++     *
++     * If the statistics buffer is not supplied or if the maximum count is
++     * zero, the routine returns the proposed count of statistics instead.
++     * @param statistics
++     * Buffer that will receive the UInt64 statistic values.
++     * @param statisticsMaxCount
++     * Maximum number of statistic values that can be held in the buffer.
++     * @result
++     * Actual number of statistic values copied to the buffer, or if no buffer
++     * is given, the total number of statistic values available.
++     */
++
++    virtual UInt32 getStatistics(UInt64 * statistics,
++                                 UInt32   statisticsMaxCount) const;
++
++    /*!
++     * @function getStatistic
++     * @discussion
++     * Ask the driver to report one of its operating statistics.
++     * @param statistic
++     * Statistic index (an IOBlockStorageDriver::Statistics index).
++     * @result
++     * Statistic value.
++     */
++
++    virtual UInt64 getStatistic(Statistics statistic) const;
++
++    /*
++     * Generic entry point for calls from the provider.  A return value of
++     * kIOReturnSuccess indicates that the message was received, and where
++     * applicable, that it was successful.
++     */
++
++    virtual IOReturn message(UInt32 type, IOService * provider, void * argument);
++
++    /*
++     * Obtain this object's provider.  We override the superclass's method to
++     * return a more specific subclass of IOService -- IOBlockStorageDevice.  
++     * This method serves simply as a convenience to subclass developers.
++     */
++
++    virtual IOBlockStorageDevice * getProvider() const;
++
++protected:
++
++    IOLock *      _deblockRequestWriteLock;
++
++#ifdef __LP64__
++    UInt64        _reserved1024;
++#else /* !__LP64__ */
++    UInt32        _reserved1024;
++#endif /* !__LP64__ */
++
++    static void breakUpRequestExecute(void * parameter, void * target);
++
++    static void deblockRequestExecute(void * parameter, void * target);
++
++    /*
++     * This is the completion routine for the broken up breaker sub-requests.
++     * It verifies the success of the just-completed stage,  transitions to
++     * the next stage, then builds and issues a transfer for the next stage.
++     */
++
++    static void breakUpRequestCompletion(void *   target,
++                                         void *   parameter,
++                                         IOReturn status,
++                                         UInt64   actualByteCount);
++
++    /*
++     * This is the completion routine for the aligned deblocker sub-requests.
++     * It verifies the success of the just-completed stage,  transitions to
++     * the next stage, then builds and issues a transfer for the next stage.
++     */
++
++    static void deblockRequestCompletion(void *   target,
++                                         void *   parameter,
++                                         IOReturn status,
++                                         UInt64   actualByteCount);
++
++    /*
++     * This is the completion routine for the prepared request.  It updates
++     * the driver's statistics, performs some clean up work, then calls the
++     * original request's completion routine.
++     */
++
++    static void prepareRequestCompletion(void *   target,
++                                         void *   parameter,
++                                         IOReturn status,
++                                         UInt64   actualByteCount);
++
++    virtual void schedulePoller() __attribute__ ((deprecated));
++
++    virtual void unschedulePoller() __attribute__ ((deprecated));
++
++    /*
++     * This method is the power event handler for restarts and shutdowns.
++     */
++
++    static IOReturn handlePowerEvent(void *      target,
++                                     void *      parameter,
++                                     UInt32      messageType,
++                                     IOService * provider,
++                                     void *      messageArgument,
++                                     vm_size_t   messageArgumentSize);
++
++protected:
++
++    /* Device info: */
++
++    /*!
++     * @var _removable
++     * True if the media is removable; False if it is fixed (not removable).
++     */
++    bool		_removable;
++
++    /*!
++     * @var _ejectable
++     * True if the media is ejectable under software control.
++     */
++    bool		_ejectable;		/* software-ejectable */
++
++    UInt16		_reserved1104;
++
++    UInt32		_openAssertions;
++
++    /* Media info and states: */
++
++    /*!
++     * @var _mediaObject
++     * A pointer to the media object we have instantiated (if any).
++     */
++    IOMedia *		_mediaObject;
++
++    /*!
++     * @var _mediaType
++     * Type of the media (can be used to differentiate between the
++     * different types of CD media, DVD media, etc).
++     */
++    UInt32		_mediaType;
++
++    UInt8		_reserved1248;
++
++    /*!
++     * @var _writeProtected
++     * True if the media is write-protected; False if not.
++     */
++    bool		_writeProtected;
++
++    UInt16		_reserved1264;
++#ifdef __LP64__
++    UInt64		_reserved1280;
++#else /* !__LP64__ */
++    UInt32		_reserved1280;
++#endif /* !__LP64__ */
++
++    /*!
++     * @var _mediaBlockSize
++     * The block size of the media, in bytes.
++     */
++    UInt64		_mediaBlockSize;
++
++    /*!
++     * @var _maxBlockNumber
++     * The maximum allowable block number for the media, zero-based.
++     */
++    UInt64		_maxBlockNumber;
++
++    /*!
++     * @var _maxReadByteTransfer
++     * The maximum byte transfer allowed for read operations.
++     */
++    UInt64		_maxReadByteTransfer;
++
++    /*!
++     * @var _maxWriteByteTransfer
++     * The maximum byte transfer allowed for write operations.
++     */
++    UInt64		_maxWriteByteTransfer;
++
++    /*!
++     * @function acceptNewMedia
++     * @abstract
++     * React to new media insertion.
++     * @discussion
++     * This method logs the media block size and block count, then calls
++     * instantiateMediaObject to get a media object instantiated. The
++     * media object is then attached above us and registered.
++     * 
++     * This method can be overridden to control what happens when new media
++     * is inserted. The default implementation deals with one IOMedia object.
++     */
++    virtual IOReturn	acceptNewMedia(void);
++    
++    /*!
++     * @function constrainByteCount
++     * @abstract
++     * Constrain the byte count for this IO to device limits.
++     * @discussion
++     * This function should be called prior to each read or write operation, so that
++     * the driver can constrain the requested byte count, as necessary, to meet
++     * current device limits. Such limits could be imposed by the device depending
++     * on operating modes, media types, or transport protocol (e.g. ATA, SCSI).
++     * 
++     * At present, this method is not used.
++     * @param requestedCount
++     * The requested byte count for the next read or write operation.
++     * @param isWrite
++     * True if the operation will be a write; False if the operation will be a read.
++     */
++    virtual UInt64	constrainByteCount(UInt64 requestedCount,bool isWrite);
++
++    /*!
++     * @function decommissionMedia
++     * @abstract
++     * Decommission an existing piece of media that has gone away.
++     * @discussion
++     * This method wraps a call to terminate, to tear down the stack and
++     * the IOMedia object for the media. If "forcible" is true, the media
++     * object will be forgotten, and initMediaState will be called. A
++     * forcible decommission would occur when an unrecoverable error
++     * happens during tear-down (e.g. perhaps a client is still open), but
++     * we must still forget about the media.
++     * @param forcible
++     * True to force forgetting of the media object even if terminate reports
++     * that there was an active client.
++     */
++    virtual IOReturn	decommissionMedia(bool forcible);
++
++    /*!
++     * @function instantiateDesiredMediaObject
++     * @abstract
++     * Create an IOMedia object for media.
++     * @discussion
++     * This method creates the exact type of IOMedia object desired. It is called by
++     * instantiateMediaObject. A subclass may override this one-line method to change
++     * the type of media object actually instantiated.
++     */
++    virtual IOMedia *	instantiateDesiredMediaObject(void);
++
++    /*!
++     * @function instantiateMediaObject
++     * @abstract
++     * Create an IOMedia object for media.
++     * @discussion
++     * This method creates an IOMedia object from the supplied parameters. It is a
++     * convenience method to wrap the handful of steps to do the job.
++     * @param base
++     * Byte number of beginning of active data area of the media. Usually zero.
++     * @param byteSize
++     * Size of the data area of the media, in bytes.
++     * @param blockSize
++     * Block size of the media, in bytes.
++     * @param mediaName
++     * Name of the IOMedia object.
++     * @result
++     * A pointer to the created IOMedia object, or a null on error.
++     */
++    virtual IOMedia *	instantiateMediaObject(UInt64 base,UInt64 byteSize,
++                                            UInt32 blockSize,char *mediaName);
++
++    /*!
++     * @function recordMediaParameters
++     * @abstract
++     * Obtain media-related parameters on media insertion.
++     * @discussion
++     * This method obtains media-related parameters via calls to the
++     * Transport Driver's reportBlockSize, reportMaxValidBlock,
++     * and reportWriteProtection methods.
++     */
++    virtual IOReturn	recordMediaParameters(void);
++
++    /*!
++     * @function rejectMedia
++     * @abstract
++     * Reject new media.
++     * @discussion
++     * This method will be called if validateNewMedia returns False (thus rejecting
++     * the new media. A vendor may choose to override this method to control behavior
++     * when media is rejected.
++     * 
++     * The default implementation simply calls ejectMedia.
++     */
++    virtual void	rejectMedia(void);	/* default ejects */
++    
++    /*!
++     * @function validateNewMedia
++     * @abstract
++     * Verify that new media is acceptable.
++     * @discussion
++     * This method will be called whenever new media is detected. Return true to accept
++     * the media, or false to reject it (and call rejectMedia). Vendors might override
++     * this method to handle password-protection for new media.
++     * 
++     * The default implementation always returns True, indicating media is accepted.
++     */
++    virtual bool	validateNewMedia(void);
++
++    /* --- Internally used methods. --- */
++
++    /*
++     * @group
++     * Internally Used Methods
++     * @discussion
++     * These methods are used internally, and will not generally be modified.
++     */
++    
++    /*!
++     * @function checkForMedia
++     * @abstract
++     * Check if media has newly arrived or disappeared.
++     * @discussion
++     * This method does most of the work in polling for media, first
++     * calling the block storage device's reportMediaState method. If
++     * reportMediaState reports no change in the media state, kIOReturnSuccess
++     * is returned. If the media state has indeed changed, a call is made to
++     * mediaStateHasChanged to act on the event.
++     */
++    virtual IOReturn	checkForMedia(void);
++
++    /*!
++     * @function getDeviceTypeName
++     * @abstract
++     * Return the desired device name.
++     * @discussion
++     * This method returns a string, used to compare the 
++     * kIOBlockStorageDeviceTypeKey of our provider. This method is called from
++     * probe.
++     *  
++     * The default implementation of this method returns 
++     * kIOBlockStorageDeviceTypeGeneric.
++     */
++    virtual const char * getDeviceTypeName(void);
++
++    /*!
++     * @function initMediaState
++     * @abstract
++     * Initialize media-related instance variables.
++     * @discussion
++     * Called when media is not present, this method marks the device state
++     * as not having media present, not spun up, and write-enabled.
++     */
++    virtual void	initMediaState(void);
++    
++    /*!
++     * @function mediaStateHasChanged
++     * @abstract
++     * React to a new media insertion or a media removal.
++     * @discussion
++     * This method is called on a media state change, that is, an arrival
++     * or removal. If media has just become available, calls are made to
++     * recordMediaParameters and acceptNewMedia. If media has just gone
++     * away, a call is made to decommissionMedia, with the forcible
++     * parameter set to true. The forcible tear-down is needed to enforce
++     * the disappearance of media, regardless of interested clients.
++     */
++    virtual IOReturn	mediaStateHasChanged(IOMediaState state);
++
++    /*
++     * @endgroup
++     */
++
++protected:
++
++    /*!
++     * @function breakUpRequest
++     * @discussion
++     * The breakUpRequest method checks to see if the incoming request exceeds
++     * our transfer constraints, and if so, breaks up the request into smaller
++     * sub-requests.
++     *
++     * This method is part of a sequence of methods invoked for each read/write
++     * request.  The first is prepareRequest, which allocates and prepares some
++     * context for the transfer; the second is deblockRequest, which aligns the
++     * transfer at the media's block boundaries; third is breakUpRequest, which
++     * breaks up the transfer into multiple sub-transfers when certain hardware
++     * constraints are exceeded; fourth is executeRequest, which implements the
++     * actual transfer from the block storage device.
++     *
++     * This method's implementation is not typically overridden.
++     * @param byteStart
++     * Starting byte offset for the data transfer.
++     * @param buffer
++     * Buffer for the data transfer.  The size of the buffer implies the size of
++     * the data transfer.
++     * @param attributes
++     * Attributes of the data transfer.  See IOStorageAttributes.  It is the
++     * responsibility of the callee to maintain the information for the duration
++     * of the data transfer, as necessary.
++     * @param completion
++     * Completion routine to call once the data transfer is complete.  It is the
++     * responsibility of the callee to maintain the information for the duration
++     * of the data transfer, as necessary.
++     * @param context
++     * Additional context information for the data transfer (e.g. block size).
++     */
++
++#ifdef __LP64__
++    virtual void breakUpRequest(UInt64                byteStart,
++                                IOMemoryDescriptor *  buffer,
++                                IOStorageAttributes * attributes,
++                                IOStorageCompletion * completion,
++                                Context *             context);
++#else /* !__LP64__ */
++    virtual void breakUpRequest(UInt64                byteStart,
++                                IOMemoryDescriptor *  buffer,
++                                IOStorageCompletion   completion,
++                                Context *             context); /* 10.1.2 */
++#endif /* !__LP64__ */
++
++    /*!
++     * @function prepareRequest
++     * @discussion
++     * The prepareRequest method allocates and prepares state for the transfer.
++     *
++     * This method is part of a sequence of methods invoked for each read/write
++     * request.  The first is prepareRequest, which allocates and prepares some
++     * context for the transfer; the second is deblockRequest, which aligns the
++     * transfer at the media's block boundaries; third is breakUpRequest, which
++     * breaks up the transfer into multiple sub-transfers when certain hardware
++     * constraints are exceeded; fourth is executeRequest, which implements the
++     * actual transfer from the block storage device.
++     *
++     * This method's implementation is not typically overridden.
++     * @param byteStart
++     * Starting byte offset for the data transfer.
++     * @param buffer
++     * Buffer for the data transfer.  The size of the buffer implies the size of
++     * the data transfer.
++     * @param attributes
++     * Attributes of the data transfer.  See IOStorageAttributes.  It is the
++     * responsibility of the callee to maintain the information for the duration
++     * of the data transfer, as necessary.
++     * @param completion
++     * Completion routine to call once the data transfer is complete.  It is the
++     * responsibility of the callee to maintain the information for the duration
++     * of the data transfer, as necessary.
++     */
++
++    virtual void prepareRequest(UInt64                byteStart,
++                                IOMemoryDescriptor *  buffer,
++                                IOStorageAttributes * attributes,
++                                IOStorageCompletion * completion); /* 10.5.0 */
++
++public:
++
++    /*!
++     * @function requestIdle
++     * @abstract
++     * Request that the device enter an idle state.
++     * @discussion
++     * Request that the device enter an idle state.  The device will exit this state on the
++     * next read or write request, or as it sees necessary.  One example is for a DVD drive
++     * to spin down when it enters such an idle state, and spin up on the next read request
++     * from the system.
++     */
++    virtual IOReturn	requestIdle(void); /* 10.6.0 */
++
++#ifdef __LP64__
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver,  0);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver,  1);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver,  2);
++#else /* !__LP64__ */
++    OSMetaClassDeclareReservedUsed(IOBlockStorageDriver,  0);
++    OSMetaClassDeclareReservedUsed(IOBlockStorageDriver,  1);
++    OSMetaClassDeclareReservedUsed(IOBlockStorageDriver,  2);
++#endif /* !__LP64__ */
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver,  3);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver,  4);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver,  5);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver,  6);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver,  7);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver,  8);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver,  9);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver, 10);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver, 11);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver, 12);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver, 13);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver, 14);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver, 15);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver, 16);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver, 17);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver, 18);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver, 19);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver, 20);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver, 21);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver, 22);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver, 23);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver, 24);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver, 25);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver, 26);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver, 27);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver, 28);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver, 29);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver, 30);
++    OSMetaClassDeclareReservedUnused(IOBlockStorageDriver, 31);
++};
++
++#endif /* __cplusplus */
++#endif /* KERNEL */
++#endif /* !_IOBLOCKSTORAGEDRIVER_H */
+Index: top-39/bsd/net/if_types.h
+===================================================================
+--- /dev/null
++++ top-39/bsd/net/if_types.h
+@@ -0,0 +1,154 @@
++/*
++ * Copyright (c) 2000-2010 Apple Inc. All rights reserved.
++ *
++ * @APPLE_OSREFERENCE_LICENSE_HEADER_START@
++ * 
++ * This file contains Original Code and/or Modifications of Original Code
++ * as defined in and that are subject to the Apple Public Source License
++ * Version 2.0 (the 'License'). You may not use this file except in
++ * compliance with the License. The rights granted to you under the License
++ * may not be used to create, or enable the creation or redistribution of,
++ * unlawful or unlicensed copies of an Apple operating system, or to
++ * circumvent, violate, or enable the circumvention or violation of, any
++ * terms of an Apple operating system software license agreement.
++ * 
++ * Please obtain a copy of the License at
++ * http://www.opensource.apple.com/apsl/ and read it before using this file.
++ * 
++ * The Original Code and all software distributed under the License are
++ * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
++ * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
++ * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
++ * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
++ * Please see the License for the specific language governing rights and
++ * limitations under the License.
++ * 
++ * @APPLE_OSREFERENCE_LICENSE_HEADER_END@
++ */
++/*
++ * Copyright (c) 1989, 1993, 1994
++ *	The Regents of the University of California.  All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in the
++ *    documentation and/or other materials provided with the distribution.
++ * 3. All advertising materials mentioning features or use of this software
++ *    must display the following acknowledgement:
++ *	This product includes software developed by the University of
++ *	California, Berkeley and its contributors.
++ * 4. Neither the name of the University nor the names of its contributors
++ *    may be used to endorse or promote products derived from this software
++ *    without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
++ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
++ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
++ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
++ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
++ * SUCH DAMAGE.
++ *
++ *	@(#)if_types.h	8.2 (Berkeley) 4/20/94
++ * $FreeBSD: src/sys/net/if_types.h,v 1.8.2.3 2001/07/03 11:01:41 ume Exp $
++ */
++
++#ifndef _NET_IF_TYPES_H_
++#define _NET_IF_TYPES_H_
++#include <sys/appleapiopts.h>
++
++/*
++ * Interface types for benefit of parsing media address headers.
++ * This list is derived from the SNMP list of ifTypes, currently
++ * documented in RFC1573.
++ * The current list of assignments is maintained at:
++ * 	http://www.iana.org/assignments/smi-numbers
++ */
++
++#define	IFT_OTHER	0x1		/* none of the following */
++#define	IFT_1822	0x2		/* old-style arpanet imp */
++#define	IFT_HDH1822	0x3		/* HDH arpanet imp */
++#define	IFT_X25DDN	0x4		/* x25 to imp */
++#define	IFT_X25		0x5		/* PDN X25 interface (RFC877) */
++#define	IFT_ETHER	0x6		/* Ethernet CSMACD */
++#define	IFT_ISO88023	0x7		/* CMSA CD */
++#define	IFT_ISO88024	0x8		/* Token Bus */
++#define	IFT_ISO88025	0x9		/* Token Ring */
++#define	IFT_ISO88026	0xa		/* MAN */
++#define	IFT_STARLAN	0xb
++#define	IFT_P10		0xc		/* Proteon 10MBit ring */
++#define	IFT_P80		0xd		/* Proteon 80MBit ring */
++#define	IFT_HY		0xe		/* Hyperchannel */
++#define	IFT_FDDI	0xf
++#define	IFT_LAPB	0x10
++#define	IFT_SDLC	0x11
++#define	IFT_T1		0x12
++#define	IFT_CEPT	0x13		/* E1 - european T1 */
++#define	IFT_ISDNBASIC	0x14
++#define	IFT_ISDNPRIMARY	0x15
++#define	IFT_PTPSERIAL	0x16		/* Proprietary PTP serial */
++#define	IFT_PPP		0x17		/* RFC 1331 */
++#define	IFT_LOOP	0x18		/* loopback */
++#define	IFT_EON		0x19		/* ISO over IP */
++#define	IFT_XETHER	0x1a		/* obsolete 3MB experimental ethernet */
++#define	IFT_NSIP	0x1b		/* XNS over IP */
++#define	IFT_SLIP	0x1c		/* IP over generic TTY */
++#define	IFT_ULTRA	0x1d		/* Ultra Technologies */
++#define	IFT_DS3		0x1e		/* Generic T3 */
++#define	IFT_SIP		0x1f		/* SMDS */
++#define	IFT_FRELAY	0x20		/* Frame Relay DTE only */
++#define	IFT_RS232	0x21
++#define	IFT_PARA	0x22		/* parallel-port */
++#define	IFT_ARCNET	0x23
++#define	IFT_ARCNETPLUS	0x24
++#define	IFT_ATM		0x25		/* ATM cells */
++#define	IFT_MIOX25	0x26
++#define	IFT_SONET	0x27		/* SONET or SDH */
++#define	IFT_X25PLE	0x28
++#define	IFT_ISO88022LLC	0x29
++#define	IFT_LOCALTALK	0x2a
++#define	IFT_SMDSDXI	0x2b
++#define	IFT_FRELAYDCE	0x2c		/* Frame Relay DCE */
++#define	IFT_V35		0x2d
++#define	IFT_HSSI	0x2e
++#define	IFT_HIPPI	0x2f
++#define	IFT_MODEM	0x30		/* Generic Modem */
++#define	IFT_AAL5	0x31		/* AAL5 over ATM */
++#define	IFT_SONETPATH	0x32
++#define	IFT_SONETVT	0x33
++#define	IFT_SMDSICIP	0x34		/* SMDS InterCarrier Interface */
++#define	IFT_PROPVIRTUAL	0x35		/* Proprietary Virtual/internal */
++#define	IFT_PROPMUX	0x36		/* Proprietary Multiplexing */
++#define	IFT_GIF		0x37		/*0xf0*/
++#define	IFT_FAITH	0x38		/*0xf2*/
++#define	IFT_STF		0x39		/*0xf3*/
++#define	IFT_L2VLAN	0x87		/* Layer 2 Virtual LAN using 802.1Q */
++#define IFT_IEEE8023ADLAG 0x88		/* IEEE802.3ad Link Aggregate */
++#define	IFT_IEEE1394	0x90		/* IEEE1394 High Performance SerialBus*/
++#define IFT_BRIDGE	0xd1		/* Transparent bridge interface */
++
++/*
++ * These are not based on IANA assignments:
++ * Note: IFT_STF has a defined ifType: 0xd7 (215), but we use 0x39.
++ */
++#define	IFT_GIF		0x37		/*0xf0*/
++#define	IFT_FAITH	0x38		/*0xf2*/
++#define	IFT_STF		0x39		/*0xf3*/
++
++#define	IFT_ENC		0xf4		/* Encapsulation */
++#define	IFT_PFLOG	0xf5		/* Packet filter logging */
++#define	IFT_PFSYNC	0xf6		/* Packet filter state syncing */
++#define	IFT_CARP	0xf8		/* Common Address Redundancy Protocol */
++
++#define	IFT_CELLULAR	0xff		/* Packet Data over Cellular */
++#define	IFT_PDP		IFT_CELLULAR	/* deprecated; use IFT_CELLULAR */
++
++#endif
+Index: top-39/bsd/net/route.h
+===================================================================
+--- /dev/null
++++ top-39/bsd/net/route.h
+@@ -0,0 +1,560 @@
++/*
++ * Copyright (c) 2000-2012 Apple Inc. All rights reserved.
++ *
++ * @APPLE_OSREFERENCE_LICENSE_HEADER_START@
++ * 
++ * This file contains Original Code and/or Modifications of Original Code
++ * as defined in and that are subject to the Apple Public Source License
++ * Version 2.0 (the 'License'). You may not use this file except in
++ * compliance with the License. The rights granted to you under the License
++ * may not be used to create, or enable the creation or redistribution of,
++ * unlawful or unlicensed copies of an Apple operating system, or to
++ * circumvent, violate, or enable the circumvention or violation of, any
++ * terms of an Apple operating system software license agreement.
++ * 
++ * Please obtain a copy of the License at
++ * http://www.opensource.apple.com/apsl/ and read it before using this file.
++ * 
++ * The Original Code and all software distributed under the License are
++ * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
++ * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
++ * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
++ * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
++ * Please see the License for the specific language governing rights and
++ * limitations under the License.
++ * 
++ * @APPLE_OSREFERENCE_LICENSE_HEADER_END@
++ */
++/*
++ * Copyright (c) 1980, 1986, 1993
++ *	The Regents of the University of California.  All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in the
++ *    documentation and/or other materials provided with the distribution.
++ * 3. All advertising materials mentioning features or use of this software
++ *    must display the following acknowledgement:
++ *	This product includes software developed by the University of
++ *	California, Berkeley and its contributors.
++ * 4. Neither the name of the University nor the names of its contributors
++ *    may be used to endorse or promote products derived from this software
++ *    without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
++ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
++ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
++ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
++ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
++ * SUCH DAMAGE.
++ *
++ *	@(#)route.h	8.3 (Berkeley) 4/19/94
++ * $FreeBSD: src/sys/net/route.h,v 1.36.2.1 2000/08/16 06:14:23 jayanth Exp $
++ */
++
++#ifndef _NET_ROUTE_H_
++#define _NET_ROUTE_H_
++#include <sys/appleapiopts.h>
++#include <stdint.h>
++#include <sys/types.h>
++#include <sys/socket.h>
++
++/*
++ * Kernel resident routing tables.
++ *
++ * The routing tables are initialized when interface addresses
++ * are set by making entries for all directly connected interfaces.
++ */
++
++/*
++ * A route consists of a destination address and a reference
++ * to a routing entry.  These are often held by protocols
++ * in their control blocks, e.g. inpcb.
++ */
++#ifdef PRIVATE
++struct  rtentry;
++struct route {
++	/*
++	 * N.B: struct route must begin with ro_rt and ro_flags
++	 * because the code does some casts of a 'struct route_in6 *'
++	 * to a 'struct route *'.
++	 */
++	struct rtentry	*ro_rt;
++	uint32_t	ro_flags;	/* route flags (see below) */
++	struct sockaddr	ro_dst;
++};
++
++#define	ROF_SRCIF_SELECTED	0x1 /* source interface was selected */
++
++/*
++ * Route reachability info (private)
++ */
++struct rt_reach_info {
++	u_int32_t		ri_refcnt;	/* reference count */
++	u_int32_t		ri_probes;	/* total # of probes */
++	u_int64_t		ri_snd_expire;	/* transmit expiration (calendar) time */
++	u_int64_t		ri_rcv_expire;	/* receive expiration (calendar) time */
++	int32_t			ri_rssi;	/* received signal strength */
++	int32_t			ri_lqm;		/* link quality metric */
++	int32_t			ri_npm;		/* node proximity metric */
++};
++#else
++struct route;
++#endif /* PRIVATE */
++
++/*
++ * These numbers are used by reliable protocols for determining
++ * retransmission behavior and are included in the routing structure.
++ */
++struct rt_metrics {
++	u_int32_t	rmx_locks;	/* Kernel must leave these values alone */
++	u_int32_t	rmx_mtu;	/* MTU for this path */
++	u_int32_t	rmx_hopcount;	/* max hops expected */
++	int32_t		rmx_expire;	/* lifetime for route, e.g. redirect */
++	u_int32_t	rmx_recvpipe;	/* inbound delay-bandwidth product */
++	u_int32_t	rmx_sendpipe;	/* outbound delay-bandwidth product */
++	u_int32_t	rmx_ssthresh;	/* outbound gateway buffer limit */
++	u_int32_t	rmx_rtt;	/* estimated round trip time */
++	u_int32_t	rmx_rttvar;	/* estimated rtt variance */
++	u_int32_t	rmx_pksent;	/* packets sent using this route */
++	u_int32_t	rmx_filler[4];	/* will be used for T/TCP later */
++};
++
++/*
++ * rmx_rtt and rmx_rttvar are stored as microseconds;
++ */
++#define	RTM_RTTUNIT	1000000	/* units for rtt, rttvar, as units per sec */
++
++#ifdef KERNEL_PRIVATE
++/*
++ * New expiry value (in seconds) when dealing with interfaces which implement
++ * the if_want_aggressive_drain behavior.  Otherwise the event mechanism wouldn't
++ * fire quick enough to cause any sort of significant gains in performance.
++ */
++#define RT_IF_IDLE_EXPIRE_TIMEOUT	30
++#define RT_IF_IDLE_DRAIN_INTERVAL	10
++#endif /* KERNEL_PRIVATE */
++
++/*
++ * We distinguish between routes to hosts and routes to networks,
++ * preferring the former if available.  For each route we infer
++ * the interface to use from the gateway address supplied when
++ * the route was entered.  Routes that forward packets through
++ * gateways are marked so that the output routines know to address the
++ * gateway rather than the ultimate destination.
++ */
++#ifdef KERNEL_PRIVATE
++#include <kern/locks.h>
++#ifndef RNF_NORMAL
++#include <net/radix.h>
++#endif
++struct ifnet_llreach_info;	/* forward declaration */
++/*
++ * Kernel routing entry structure (private).
++ */
++struct rtentry {
++	struct	radix_node rt_nodes[2];	/* tree glue, and other values */
++#define	rt_key(r)	((struct sockaddr *)(void *)((r)->rt_nodes->rn_key))
++#define	rt_mask(r)	((struct sockaddr *)(void *)((r)->rt_nodes->rn_mask))
++	struct	sockaddr *rt_gateway;	/* value */
++	int32_t	rt_refcnt;		/* # held references */
++	uint32_t rt_flags;		/* up/down?, host/net */
++	struct	ifnet *rt_ifp;		/* the answer: interface to use */
++	struct	ifaddr *rt_ifa;		/* the answer: interface addr to use */
++	struct	sockaddr *rt_genmask;	/* for generation of cloned routes */
++	void	*rt_llinfo;		/* pointer to link level info cache */
++	void	(*rt_llinfo_get_ri)	/* llinfo get reachability info fn */
++	    (struct rtentry *, struct rt_reach_info *);
++	void	(*rt_llinfo_get_iflri)	/* ifnet llinfo get reach. info fn */
++	    (struct rtentry *, struct ifnet_llreach_info *);
++	void	(*rt_llinfo_purge)(struct rtentry *); /* llinfo purge fn */
++	void	(*rt_llinfo_free)(void *); /* link level info free function */
++	struct	rt_metrics rt_rmx;	/* metrics used by rx'ing protocols */
++	struct	rtentry *rt_gwroute;	/* implied entry for gatewayed routes */
++	struct	rtentry *rt_parent;	/* cloning parent of this route */
++	uint32_t generation_id;		/* route generation id */
++	/*
++	 * See bsd/net/route.c for synchronization notes.
++	 */
++	decl_lck_mtx_data(, rt_lock);	/* lock for routing entry */
++	struct nstat_counts	*rt_stats;
++	void	(*rt_if_ref_fn)(struct ifnet *, int); /* interface ref func */
++
++	uint64_t rt_expire;		/* expiration time in uptime seconds */
++	uint64_t base_calendartime;	/* calendar time upon entry creation */
++	uint64_t base_uptime;/* 	uptime upon entry creation */
++};
++
++extern void rt_setexpire(struct rtentry *, uint64_t);
++#endif /* KERNEL_PRIVATE */
++
++#ifdef KERNEL_PRIVATE
++#define rt_use rt_rmx.rmx_pksent
++#endif /* KERNEL_PRIVATE */
++
++#define	RTF_UP		0x1		/* route usable */
++#define	RTF_GATEWAY	0x2		/* destination is a gateway */
++#define	RTF_HOST	0x4		/* host entry (net otherwise) */
++#define	RTF_REJECT	0x8		/* host or net unreachable */
++#define	RTF_DYNAMIC	0x10		/* created dynamically (by redirect) */
++#define	RTF_MODIFIED	0x20		/* modified dynamically (by redirect) */
++#define RTF_DONE	0x40		/* message confirmed */
++#define RTF_DELCLONE	0x80		/* delete cloned route */
++#define RTF_CLONING	0x100		/* generate new routes on use */
++#define RTF_XRESOLVE	0x200		/* external daemon resolves name */
++#define RTF_LLINFO	0x400		/* generated by link layer (e.g. ARP) */
++#define RTF_STATIC	0x800		/* manually added */
++#define RTF_BLACKHOLE	0x1000		/* just discard pkts (during updates) */
++#define RTF_PROTO2	0x4000		/* protocol specific routing flag */
++#define RTF_PROTO1	0x8000		/* protocol specific routing flag */
++
++#define RTF_PRCLONING	0x10000		/* protocol requires cloning */
++#define RTF_WASCLONED	0x20000		/* route generated through cloning */
++#define RTF_PROTO3	0x40000		/* protocol specific routing flag */
++					/* 0x80000 unused */
++#define RTF_PINNED	0x100000	/* future use */
++#define	RTF_LOCAL	0x200000	/* route represents a local address */
++#define	RTF_BROADCAST	0x400000	/* route represents a bcast address */
++#define	RTF_MULTICAST	0x800000	/* route represents a mcast address */
++#define RTF_IFSCOPE	0x1000000	/* has valid interface scope */
++#define RTF_CONDEMNED	0x2000000	/* defunct; no longer modifiable */
++#define RTF_IFREF	0x4000000	/* route holds a ref to interface */
++#define	RTF_PROXY	0x8000000	/* proxying, no interface scope */
++#define	RTF_ROUTER	0x10000000	/* host is a router */
++					/* 0x20000000 and up unassigned */
++
++/*
++ * Routing statistics.
++ */
++struct	rtstat {
++	short	rts_badredirect;	/* bogus redirect calls */
++	short	rts_dynamic;		/* routes created by redirects */
++	short	rts_newgateway;		/* routes modified by redirects */
++	short	rts_unreach;		/* lookups which failed */
++	short	rts_wildcard;		/* lookups satisfied by a wildcard */
++};
++
++/*
++ * Structures for routing messages.
++ */
++struct rt_msghdr {
++	u_short	rtm_msglen;		/* to skip over non-understood messages */
++	u_char	rtm_version;		/* future binary compatibility */
++	u_char	rtm_type;		/* message type */
++	u_short	rtm_index;		/* index for associated ifp */
++	int	rtm_flags;		/* flags, incl. kern & message, e.g. DONE */
++	int	rtm_addrs;		/* bitmask identifying sockaddrs in msg */
++	pid_t	rtm_pid;		/* identify sender */
++	int	rtm_seq;		/* for sender to identify action */
++	int	rtm_errno;		/* why failed */
++	int	rtm_use;		/* from rtentry */
++	u_int32_t rtm_inits;		/* which metrics we are initializing */
++	struct rt_metrics rtm_rmx;	/* metrics themselves */
++};
++
++struct rt_msghdr2 {
++	u_short	rtm_msglen;		/* to skip over non-understood messages */
++	u_char	rtm_version;		/* future binary compatibility */
++	u_char	rtm_type;		/* message type */
++	u_short	rtm_index;		/* index for associated ifp */
++	int	rtm_flags;		/* flags, incl. kern & message, e.g. DONE */
++	int	rtm_addrs;		/* bitmask identifying sockaddrs in msg */
++	int32_t	rtm_refcnt;		/* reference count */
++	int	rtm_parentflags;	/* flags of the parent route */
++	int	rtm_reserved;		/* reserved field set to 0 */
++	int	rtm_use;		/* from rtentry */
++	u_int32_t rtm_inits;		/* which metrics we are initializing */
++	struct rt_metrics rtm_rmx;	/* metrics themselves */
++};
++
++#ifdef PRIVATE
++/*
++ * Extended routing message header (private).
++ */
++struct rt_msghdr_ext {
++	u_short	rtm_msglen;	/* to skip over non-understood messages */
++	u_char	rtm_version;	/* future binary compatibility */
++	u_char	rtm_type;	/* message type */
++	u_int32_t rtm_index;	/* index for associated ifp */
++	u_int32_t rtm_flags;	/* flags, incl. kern & message, e.g. DONE */
++	u_int32_t rtm_reserved;	/* for future use */
++	u_int32_t rtm_addrs;	/* bitmask identifying sockaddrs in msg */
++	pid_t	rtm_pid;	/* identify sender */
++	int	rtm_seq;	/* for sender to identify action */
++	int	rtm_errno;	/* why failed */
++	u_int32_t rtm_use;	/* from rtentry */
++	u_int32_t rtm_inits;	/* which metrics we are initializing */
++	struct rt_metrics rtm_rmx;	/* metrics themselves */
++	struct rt_reach_info rtm_ri;	/* route reachability info */
++};
++#endif /* PRIVATE */
++
++#define RTM_VERSION	5	/* Up the ante and ignore older versions */
++
++/*
++ * Message types.
++ */
++#define RTM_ADD		0x1	/* Add Route */
++#define RTM_DELETE	0x2	/* Delete Route */
++#define RTM_CHANGE	0x3	/* Change Metrics or flags */
++#define RTM_GET		0x4	/* Report Metrics */
++#define RTM_LOSING	0x5	/* Kernel Suspects Partitioning */
++#define RTM_REDIRECT	0x6	/* Told to use different route */
++#define RTM_MISS	0x7	/* Lookup failed on this address */
++#define RTM_LOCK	0x8	/* fix specified metrics */
++#define RTM_OLDADD	0x9	/* caused by SIOCADDRT */
++#define RTM_OLDDEL	0xa	/* caused by SIOCDELRT */
++#define RTM_RESOLVE	0xb	/* req to resolve dst to LL addr */
++#define RTM_NEWADDR	0xc	/* address being added to iface */
++#define RTM_DELADDR	0xd	/* address being removed from iface */
++#define RTM_IFINFO	0xe	/* iface going up/down etc. */
++#define	RTM_NEWMADDR	0xf	/* mcast group membership being added to if */
++#define	RTM_DELMADDR	0x10	/* mcast group membership being deleted */
++#ifdef PRIVATE
++#define RTM_GET_SILENT	0x11
++#endif /* PRIVATE */
++#define RTM_IFINFO2	0x12	/* */
++#define RTM_NEWMADDR2	0x13	/* */
++#define RTM_GET2	0x14	/* */
++#ifdef PRIVATE
++#define	RTM_GET_EXT	0x15
++#endif /* PRIVATE */
++
++/*
++ * Bitmask values for rtm_inits and rmx_locks.
++ */
++#define RTV_MTU		0x1	/* init or lock _mtu */
++#define RTV_HOPCOUNT	0x2	/* init or lock _hopcount */
++#define RTV_EXPIRE	0x4	/* init or lock _expire */
++#define RTV_RPIPE	0x8	/* init or lock _recvpipe */
++#define RTV_SPIPE	0x10	/* init or lock _sendpipe */
++#define RTV_SSTHRESH	0x20	/* init or lock _ssthresh */
++#define RTV_RTT		0x40	/* init or lock _rtt */
++#define RTV_RTTVAR	0x80	/* init or lock _rttvar */
++
++/*
++ * Bitmask values for rtm_addrs.
++ */
++#define RTA_DST		0x1	/* destination sockaddr present */
++#define RTA_GATEWAY	0x2	/* gateway sockaddr present */
++#define RTA_NETMASK	0x4	/* netmask sockaddr present */
++#define RTA_GENMASK	0x8	/* cloning mask sockaddr present */
++#define RTA_IFP		0x10	/* interface name sockaddr present */
++#define RTA_IFA		0x20	/* interface addr sockaddr present */
++#define RTA_AUTHOR	0x40	/* sockaddr for author of redirect */
++#define RTA_BRD		0x80	/* for NEWADDR, broadcast or p-p dest addr */
++
++/*
++ * Index offsets for sockaddr array for alternate internal encoding.
++ */
++#define RTAX_DST	0	/* destination sockaddr present */
++#define RTAX_GATEWAY	1	/* gateway sockaddr present */
++#define RTAX_NETMASK	2	/* netmask sockaddr present */
++#define RTAX_GENMASK	3	/* cloning mask sockaddr present */
++#define RTAX_IFP	4	/* interface name sockaddr present */
++#define RTAX_IFA	5	/* interface addr sockaddr present */
++#define RTAX_AUTHOR	6	/* sockaddr for author of redirect */
++#define RTAX_BRD	7	/* for NEWADDR, broadcast or p-p dest addr */
++#define RTAX_MAX	8	/* size of array to allocate */
++
++struct rt_addrinfo {
++	int	rti_addrs;
++	struct	sockaddr *rti_info[RTAX_MAX];
++};
++
++struct route_cb {
++	int	ip_count;
++	int	ip6_count;
++	int	ipx_count;
++	int	ns_count;
++	int	iso_count;
++	int	any_count;
++};
++
++#ifdef PRIVATE
++/*
++ * For scoped routing; a zero interface scope value means nil/no scope.
++ */
++#define	IFSCOPE_NONE	0
++#endif /* PRIVATE */
++
++#ifdef KERNEL_PRIVATE
++/*
++ * Generic call trace used by some subsystems (e.g. route, ifaddr)
++ */
++#define	CTRACE_STACK_SIZE	8		/* depth of stack trace */
++#define	CTRACE_HIST_SIZE	4		/* refcnt history size */
++typedef struct ctrace {
++	void	*th;				/* thread ptr */
++	void	*pc[CTRACE_STACK_SIZE];		/* PC stack trace */
++} ctrace_t;
++
++extern void ctrace_record(ctrace_t *);
++
++#define	RT_LOCK_ASSERT_HELD(_rt)					\
++	lck_mtx_assert(&(_rt)->rt_lock, LCK_MTX_ASSERT_OWNED)
++
++#define	RT_LOCK_ASSERT_NOTHELD(_rt)					\
++	lck_mtx_assert(&(_rt)->rt_lock, LCK_MTX_ASSERT_NOTOWNED)
++
++#define	RT_LOCK(_rt) do {						\
++	if (!rte_debug)							\
++		lck_mtx_lock(&(_rt)->rt_lock);				\
++	else								\
++		rt_lock(_rt, FALSE);					\
++} while (0)
++
++#define	RT_LOCK_SPIN(_rt) do {						\
++	if (!rte_debug)							\
++		lck_mtx_lock_spin(&(_rt)->rt_lock);			\
++	else								\
++		rt_lock(_rt, TRUE);					\
++} while (0)
++
++#define	RT_CONVERT_LOCK(_rt) do {					\
++	RT_LOCK_ASSERT_HELD(_rt);					\
++	lck_mtx_convert_spin(&(_rt)->rt_lock);				\
++} while (0)
++
++#define	RT_UNLOCK(_rt) do {						\
++	if (!rte_debug)							\
++		lck_mtx_unlock(&(_rt)->rt_lock);			\
++	else								\
++		rt_unlock(_rt);						\
++} while (0)
++
++#define	RT_ADDREF_LOCKED(_rt) do {					\
++	if (!rte_debug) {						\
++		RT_LOCK_ASSERT_HELD(_rt);				\
++		if (++(_rt)->rt_refcnt == 0)				\
++			panic("RT_ADDREF(%p) bad refcnt\n", _rt);	\
++	} else {							\
++		rtref(_rt);						\
++	}								\
++} while (0)
++
++/*
++ * Spin variant mutex is used here; caller is responsible for
++ * converting any previously-held similar lock to full mutex.
++ */
++#define	RT_ADDREF(_rt) do {						\
++	RT_LOCK_SPIN(_rt);						\
++	RT_ADDREF_LOCKED(_rt);						\
++	RT_UNLOCK(_rt);							\
++} while (0)
++
++#define	RT_REMREF_LOCKED(_rt) do {					\
++	if (!rte_debug) {						\
++		RT_LOCK_ASSERT_HELD(_rt);				\
++		if ((_rt)->rt_refcnt == 0)				\
++			panic("RT_REMREF(%p) bad refcnt\n", _rt);	\
++		--(_rt)->rt_refcnt;					\
++	} else {							\
++		(void) rtunref(_rt);					\
++	}								\
++} while (0)
++
++/*
++ * Spin variant mutex is used here; caller is responsible for
++ * converting any previously-held similar lock to full mutex.
++ */
++#define	RT_REMREF(_rt) do {						\
++	RT_LOCK_SPIN(_rt);						\
++	RT_REMREF_LOCKED(_rt);						\
++	RT_UNLOCK(_rt);							\
++} while (0)
++
++#define RTFREE(_rt)		rtfree(_rt)
++#define RTFREE_LOCKED(_rt)	rtfree_locked(_rt)
++
++extern struct route_cb route_cb;
++extern struct radix_node_head *rt_tables[AF_MAX+1];
++__private_extern__ lck_mtx_t *rnh_lock;
++__private_extern__ int use_routegenid;
++__private_extern__ uint32_t route_generation;
++__private_extern__ int rttrash;
++__private_extern__ unsigned int rte_debug;
++
++struct ifmultiaddr;
++struct proc;
++
++extern void route_init(void) __attribute__((section("__TEXT, initcode")));
++extern void routegenid_update(void);
++extern void rt_ifmsg(struct ifnet *);
++extern void rt_missmsg(int, struct rt_addrinfo *, int, int);
++extern void rt_newaddrmsg(int, struct ifaddr *, int, struct rtentry *);
++extern void rt_newmaddrmsg(int, struct ifmultiaddr *);
++extern int rt_setgate(struct rtentry *, struct sockaddr *, struct sockaddr *);
++extern void set_primary_ifscope(int, unsigned int);
++extern unsigned int get_primary_ifscope(int);
++extern boolean_t rt_primary_default(struct rtentry *, struct sockaddr *);
++extern struct rtentry *rt_lookup(boolean_t, struct sockaddr *,
++    struct sockaddr *, struct radix_node_head *, unsigned int);
++extern void rtalloc(struct route *);
++extern void rtalloc_scoped(struct route *, unsigned int);
++extern void rtalloc_ign(struct route *, uint32_t);
++extern void rtalloc_scoped_ign(struct route *, uint32_t, unsigned int);
++extern struct rtentry *rtalloc1(struct sockaddr *, int, uint32_t);
++extern struct rtentry *rtalloc1_scoped(struct sockaddr *, int, uint32_t,
++    unsigned int);
++extern struct rtentry *rtalloc1_scoped_locked(struct sockaddr *, int,
++    uint32_t, unsigned int);
++extern void rtfree(struct rtentry *);
++extern void rtfree_locked(struct rtentry *);
++extern void rtref(struct rtentry *);
++/*
++ * rtunref will decrement the refcount, rtfree will decrement and free if
++ * the refcount has reached zero and the route is not up.
++ * Unless you have good reason to do otherwise, use rtfree.
++ */
++extern int rtunref(struct rtentry *);
++extern void rtsetifa(struct rtentry *, struct ifaddr *);
++extern int rtinit(struct ifaddr *, int, int);
++extern int rtinit_locked(struct ifaddr *, int, int);
++extern int rtioctl(unsigned long, caddr_t, struct proc *);
++extern void rtredirect(struct ifnet *, struct sockaddr *, struct sockaddr *,
++    struct sockaddr *, int, struct sockaddr *, struct rtentry **);
++extern int rtrequest(int, struct sockaddr *,
++    struct sockaddr *, struct sockaddr *, int, struct rtentry **);
++extern int rtrequest_scoped(int, struct sockaddr *, struct sockaddr *,
++    struct sockaddr *, int, struct rtentry **, unsigned int);
++extern int rtrequest_locked(int, struct sockaddr *,
++    struct sockaddr *, struct sockaddr *, int, struct rtentry **);
++extern int rtrequest_scoped_locked(int, struct sockaddr *, struct sockaddr *,
++    struct sockaddr *, int, struct rtentry **, unsigned int);
++extern void sin_set_ifscope(struct sockaddr *, unsigned int);
++extern unsigned int sin_get_ifscope(struct sockaddr *);
++extern unsigned int sin6_get_ifscope(struct sockaddr *);
++extern void rt_lock(struct rtentry *, boolean_t);
++extern void rt_unlock(struct rtentry *);
++extern struct sockaddr *rtm_scrub_ifscope(int, int, struct sockaddr *,
++    struct sockaddr *, struct sockaddr_storage *);
++extern u_int64_t rt_expiry(struct rtentry *, u_int64_t, u_int32_t);
++extern void rt_set_idleref(struct rtentry *);
++extern void rt_clear_idleref(struct rtentry *);
++extern void rt_aggdrain(int);
++extern boolean_t rt_validate(struct rtentry *);
++extern void rt_set_proxy(struct rtentry *, boolean_t);
++extern void rt_set_gwroute(struct rtentry *, struct sockaddr *,
++    struct rtentry *);
++extern void rt_revalidate_gwroute(struct rtentry *, struct rtentry *);
++extern errno_t route_to_gwroute(const struct sockaddr *, struct rtentry *,
++    struct rtentry **);
++
++#ifdef XNU_KERNEL_PRIVATE
++extern void route_copyin(struct route *src, struct route *dst, size_t length);
++extern void route_copyout(struct route *dst, const struct route *src, size_t length);
++#endif /* XNU_KERNEL_PRIVATE */
++
++#endif /* KERNEL_PRIVATE */
++
++#endif
+Index: top-39/libutil.h
+===================================================================
+--- /dev/null
++++ top-39/libutil.h
+@@ -0,0 +1,93 @@
++/*
++ * Copyright (c) 1996  Peter Wemm <peter@FreeBSD.org>.
++ * All rights reserved.
++ * Copyright (c) 2002 Networks Associates Technology, Inc.
++ * All rights reserved.
++ *
++ * Portions of this software were developed for the FreeBSD Project by
++ * ThinkSec AS and NAI Labs, the Security Research Division of Network
++ * Associates, Inc.  under DARPA/SPAWAR contract N66001-01-C-8035
++ * ("CBOSS"), as part of the DARPA CHATS research program.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, is permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in the
++ *    documentation and/or other materials provided with the distribution.
++ * 3. The name of the author may not be used to endorse or promote
++ *    products derived from this software without specific prior written
++ *    permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
++ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
++ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
++ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
++ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
++ * SUCH DAMAGE.
++ *
++ * $FreeBSD: src/lib/libutil/libutil.h,v 1.42 2006/02/18 11:25:28 des Exp $
++ */
++
++#ifndef _LIBUTIL_H_
++#define	_LIBUTIL_H_
++
++#include <unistd.h>
++#include <stdbool.h>
++
++#ifdef _SYS_PARAM_H_
++/* for pidfile.c */
++struct pidfh {
++	int	pf_fd;
++	char	pf_path[MAXPATHLEN + 1];
++	dev_t	pf_dev;
++	ino_t	pf_ino;
++};
++#endif
++
++struct in_addr;
++struct sockaddr;
++
++__BEGIN_DECLS
++int	humanize_number(char *_buf, size_t _len, int64_t _number,
++	    const char *_suffix, int _scale, int _flags);
++
++int	realhostname(char *host, size_t hsize, const struct in_addr *ip);
++int	realhostname_sa(char *host, size_t hsize, struct sockaddr *addr,
++			     int addrlen);
++
++#ifdef _SYS_PARAM_H_
++struct pidfh *pidfile_open(const char *path, mode_t mode, pid_t *pidptr);
++int pidfile_write(struct pidfh *pfh);
++int pidfile_close(struct pidfh *pfh);
++int pidfile_remove(struct pidfh *pfh);
++#endif
++
++int reexec_to_match_kernel(void);
++int reexec_to_match_lp64ness(bool isLP64);
++
++__END_DECLS
++
++/* return values from realhostname() */
++#define HOSTNAME_FOUND		(0)
++#define HOSTNAME_INCORRECTNAME	(1)
++#define HOSTNAME_INVALIDADDR	(2)
++#define HOSTNAME_INVALIDNAME	(3)
++
++/* humanize_number(3) */
++#define HN_DECIMAL		0x01
++#define HN_NOSPACE		0x02
++#define HN_B			0x04
++#define HN_DIVISOR_1000		0x08
++
++#define HN_GETSCALE		0x10
++#define HN_AUTOSCALE		0x20
++
++#endif /* !_LIBUTIL_H_ */
+Index: top-39/mach/shared_region.h
+===================================================================
+--- /dev/null
++++ top-39/mach/shared_region.h
+@@ -0,0 +1,134 @@
++/*
++ * Copyright (c) 2007 Apple Inc. All rights reserved.
++ *
++ * @APPLE_LICENSE_HEADER_START@
++ * 
++ * This file contains Original Code and/or Modifications of Original Code
++ * as defined in and that are subject to the Apple Public Source License
++ * Version 2.0 (the 'License'). You may not use this file except in
++ * compliance with the License. Please obtain a copy of the License at
++ * http://www.opensource.apple.com/apsl/ and read it before using this
++ * file.
++ * 
++ * The Original Code and all software distributed under the License are
++ * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
++ * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
++ * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
++ * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
++ * Please see the License for the specific language governing rights and
++ * limitations under the License.
++ * 
++ * @APPLE_LICENSE_HEADER_END@
++ */
++/*
++ *
++ *	File: mach/shared_region.h
++ *
++ * 	protos and struct definitions for shared region
++ */
++
++#ifndef _MACH_SHARED_REGION_H_
++#define _MACH_SHARED_REGION_H_
++
++#include <sys/cdefs.h>
++#include <mach/vm_prot.h>
++#include <mach/vm_types.h>
++#include <mach/mach_types.h>
++
++#define SHARED_REGION_BASE_I386			0x90000000ULL
++#define SHARED_REGION_SIZE_I386			0x20000000ULL
++#define SHARED_REGION_NESTING_BASE_I386		0x90000000ULL
++#define SHARED_REGION_NESTING_SIZE_I386		0x20000000ULL
++#define SHARED_REGION_NESTING_MIN_I386		0x00200000ULL
++#define SHARED_REGION_NESTING_MAX_I386		0xFFE00000ULL
++
++#define SHARED_REGION_BASE_X86_64		0x00007FFF70000000ULL
++#define SHARED_REGION_SIZE_X86_64		0x000000008FE00000ULL
++#define SHARED_REGION_NESTING_BASE_X86_64	0x00007FFF80000000ULL
++#define SHARED_REGION_NESTING_SIZE_X86_64	0x0000000040000000ULL
++#define SHARED_REGION_NESTING_MIN_X86_64	0x0000000000200000ULL
++#define SHARED_REGION_NESTING_MAX_X86_64	0xFFFFFFFFFFE00000ULL
++
++#define SHARED_REGION_BASE_PPC			0x90000000ULL
++#define SHARED_REGION_SIZE_PPC			0x20000000ULL
++#define SHARED_REGION_NESTING_BASE_PPC		0x90000000ULL
++#define SHARED_REGION_NESTING_SIZE_PPC		0x10000000ULL
++#define SHARED_REGION_NESTING_MIN_PPC		0x10000000ULL
++#define SHARED_REGION_NESTING_MAX_PPC		0x10000000ULL
++
++#define SHARED_REGION_BASE_PPC64		0x00007FFF60000000ULL
++#define SHARED_REGION_SIZE_PPC64		0x00000000A0000000ULL
++#define SHARED_REGION_NESTING_BASE_PPC64	0x00007FFF60000000ULL
++#define SHARED_REGION_NESTING_SIZE_PPC64	0x00000000A0000000ULL
++#define SHARED_REGION_NESTING_MIN_PPC64		0x0000000010000000ULL
++#define SHARED_REGION_NESTING_MAX_PPC64		0x0000000010000000ULL
++
++#define SHARED_REGION_BASE_ARM			0x30000000ULL
++#define SHARED_REGION_SIZE_ARM			0x10000000ULL
++#define SHARED_REGION_NESTING_BASE_ARM		0x30000000ULL
++#define SHARED_REGION_NESTING_SIZE_ARM		0x08000000ULL
++#define SHARED_REGION_NESTING_MIN_ARM		?
++#define SHARED_REGION_NESTING_MAX_ARM		?
++
++#if defined(__i386__)
++#define SHARED_REGION_BASE			SHARED_REGION_BASE_I386
++#define SHARED_REGION_SIZE			SHARED_REGION_SIZE_I386
++#define SHARED_REGION_NESTING_BASE		SHARED_REGION_NESTING_BASE_I386
++#define SHARED_REGION_NESTING_SIZE		SHARED_REGION_NESTING_SIZE_I386
++#define SHARED_REGION_NESTING_MIN		SHARED_REGION_NESTING_MIN_I386
++#define SHARED_REGION_NESTING_MAX		SHARED_REGION_NESTING_MAX_I386
++#elif defined(__x86_64__)
++#define SHARED_REGION_BASE			SHARED_REGION_BASE_X86_64
++#define SHARED_REGION_SIZE			SHARED_REGION_SIZE_X86_64
++#define SHARED_REGION_NESTING_BASE		SHARED_REGION_NESTING_BASE_X86_64
++#define SHARED_REGION_NESTING_SIZE		SHARED_REGION_NESTING_SIZE_X86_64
++#define SHARED_REGION_NESTING_MIN		SHARED_REGION_NESTING_MIN_X86_64
++#define SHARED_REGION_NESTING_MAX		SHARED_REGION_NESTING_MAX_X86_64
++#elif defined(__ppc__)
++#define SHARED_REGION_BASE			SHARED_REGION_BASE_PPC
++#define SHARED_REGION_SIZE			SHARED_REGION_SIZE_PPC
++#define SHARED_REGION_NESTING_BASE		SHARED_REGION_NESTING_BASE_PPC
++#define SHARED_REGION_NESTING_SIZE		SHARED_REGION_NESTING_SIZE_PPC
++#define SHARED_REGION_NESTING_MIN		SHARED_REGION_NESTING_MIN_PPC
++#define SHARED_REGION_NESTING_MAX		SHARED_REGION_NESTING_MAX_PPC
++#elif defined(__ppc64__)
++#define SHARED_REGION_BASE			SHARED_REGION_BASE_PPC64
++#define SHARED_REGION_SIZE			SHARED_REGION_SIZE_PPC64
++#define SHARED_REGION_NESTING_BASE		SHARED_REGION_NESTING_BASE_PPC64
++#define SHARED_REGION_NESTING_SIZE		SHARED_REGION_NESTING_SIZE_PPC64
++#define SHARED_REGION_NESTING_MIN		SHARED_REGION_NESTING_MIN_PPC64
++#define SHARED_REGION_NESTING_MAX		SHARED_REGION_NESTING_MAX_PPC64
++#elif defined(__arm__)
++#define SHARED_REGION_BASE			SHARED_REGION_BASE_ARM
++#define SHARED_REGION_SIZE			SHARED_REGION_SIZE_ARM
++#define SHARED_REGION_NESTING_BASE		SHARED_REGION_NESTING_BASE_ARM
++#define SHARED_REGION_NESTING_SIZE		SHARED_REGION_NESTING_SIZE_ARM
++#define SHARED_REGION_NESTING_MIN		SHARED_REGION_NESTING_MIN_ARM
++#define SHARED_REGION_NESTING_MAX		SHARED_REGION_NESTING_MAX_ARM
++#endif
++
++/* 
++ * All shared_region_* declarations are a private interface
++ * between dyld and the kernel.
++ *
++ */
++struct shared_file_mapping_np {
++	mach_vm_address_t	sfm_address;
++	mach_vm_size_t		sfm_size;
++	mach_vm_offset_t	sfm_file_offset;
++	vm_prot_t		sfm_max_prot;
++	vm_prot_t		sfm_init_prot;
++};
++#define VM_PROT_COW  0x8  /* must not interfere with normal prot assignments */
++#define VM_PROT_ZF  0x10  /* must not interfere with normal prot assignments */
++
++
++__BEGIN_DECLS
++int	shared_region_check_np(uint64_t	*startaddress);
++int	shared_region_map_np(int fd,
++			     uint32_t mappingCount,
++			     const struct shared_file_mapping_np *mappings);
++__END_DECLS
++
++
++#endif /* _MACH_SHARED_REGION_H_ */
+Index: top-39/nlist.h
+===================================================================
+--- /dev/null
++++ top-39/nlist.h
+@@ -0,0 +1,85 @@
++/*-
++ * Copyright (c) 1991, 1993
++ *	The Regents of the University of California.  All rights reserved.
++ * (c) UNIX System Laboratories, Inc.
++ * All or some portions of this file are derived from material licensed
++ * to the University of California by American Telephone and Telegraph
++ * Co. or Unix System Laboratories, Inc. and are reproduced herein with
++ * the permission of UNIX System Laboratories, Inc.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in the
++ *    documentation and/or other materials provided with the distribution.
++ * 3. All advertising materials mentioning features or use of this software
++ *    must display the following acknowledgement:
++ *	This product includes software developed by the University of
++ *	California, Berkeley and its contributors.
++ * 4. Neither the name of the University nor the names of its contributors
++ *    may be used to endorse or promote products derived from this software
++ *    without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
++ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
++ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
++ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
++ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
++ * SUCH DAMAGE.
++ *
++ *	@(#)nlist.h	8.2 (Berkeley) 1/21/94
++ */
++
++#ifndef _NLIST_H_
++#define	_NLIST_H_
++
++/*
++ * Symbol table entry format.  The #ifdef's are so that programs including
++ * nlist.h can initialize nlist structures statically.
++ */
++struct nlist {
++#ifdef _AOUT_INCLUDE_
++	union {
++		char *n_name;	/* symbol name (in memory) */
++		long n_strx;	/* file string table offset (on disk) */
++	} n_un;
++#else
++	char *n_name;		/* symbol name (in memory) */
++#endif
++
++#define	N_UNDF	0x00		/* undefined */
++#define	N_ABS	0x02		/* absolute address */
++#define	N_TEXT	0x04		/* text segment */
++#define	N_DATA	0x06		/* data segment */
++#define	N_BSS	0x08		/* bss segment */
++#define	N_COMM	0x12		/* common reference */
++#define	N_FN	0x1e		/* file name */
++
++#define	N_EXT	0x01		/* external (global) bit, OR'ed in */
++#define	N_TYPE	0x1e		/* mask for all the type bits */
++	unsigned char n_type;	/* type defines */
++
++	char n_other;		/* spare */
++#define	n_hash	n_desc		/* used internally by ld(1); XXX */
++	short n_desc;		/* used by stab entries */
++	unsigned long n_value;	/* address/value of the symbol */
++};
++
++#define	N_FORMAT	"%08x"	/* namelist value format; XXX */
++#define	N_STAB		0x0e0	/* mask for debugger symbols -- stab(5) */
++
++#include <sys/cdefs.h>
++
++__BEGIN_DECLS
++int nlist(const char *, struct nlist *);
++__END_DECLS
++
++#endif /* !_NLIST_H_ */

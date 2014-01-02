@@ -1,0 +1,33 @@
+Index: top-39/libtop.c
+===================================================================
+--- top-39.orig/libtop.c
++++ top-39/libtop.c
+@@ -749,6 +749,9 @@ libtop_p_loadavg_update(void)
+ 
+ static bool 
+ in_shared_region(mach_vm_address_t addr) {
++  if (addr >= SHARED_REGION_BASE_ARM &&
++      addr <= (SHARED_REGION_BASE_ARM + SHARED_REGION_BASE_ARM))
++    return true;
+   if (addr >= SHARED_REGION_BASE_PPC &&
+       addr <= (SHARED_REGION_BASE_PPC + SHARED_REGION_SIZE_PPC))
+     return true;
+@@ -817,6 +820,8 @@ libtop_p_fw_sample(boolean_t a_fw)
+   tsamp.fw_vsize = 0;
+   tsamp.fw_private = 0;
+ 	  
++  libtop_p_fw_scan(mach_task_self(), SHARED_REGION_BASE_ARM, SHARED_REGION_SIZE_ARM);
++
+ // PPC region: 0x90000000ULL to 0x90000000ULL + 0x20000000ULL
+   libtop_p_fw_scan(mach_task_self(), SHARED_REGION_BASE_PPC, SHARED_REGION_SIZE_PPC);
+   
+@@ -1242,6 +1247,9 @@ libtop_p_cputype(int pid) {
+ static mach_vm_size_t
+ libtop_p_shreg_size(libtop_pinfo_t *a_pinfo) {
+   switch(a_pinfo->psamp.cputype) {
++  case CPU_TYPE_ARM:
++    return SHARED_REGION_SIZE_ARM;
++    break;
+   case CPU_TYPE_POWERPC:
+     return SHARED_REGION_SIZE_PPC;
+     break;

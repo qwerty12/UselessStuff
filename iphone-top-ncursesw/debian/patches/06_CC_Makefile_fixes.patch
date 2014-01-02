@@ -1,0 +1,59 @@
+Index: top-39/Makefile
+===================================================================
+--- top-39.orig/Makefile
++++ top-39/Makefile
+@@ -4,9 +4,11 @@
+ 
+ SHELL		:= /bin/sh
+ 
+-CC		= cc
++SYSROOT=/usr/share/iPhoneOS6.0.sdk/
++
++CC=ios-clang-wrapper
+ CPPFLAGS	= -I$(SRCROOT) -DTOP_DEPRECATED #-DTOP_JAGUAR
+-CFLAGS		= -Os -g3 -no-cpp-precomp -Wall -D_XOPEN_SOURCE_EXTENDED $(RC_CFLAGS)
++CFLAGS		= -Os -no-cpp-precomp -Wall -I. -I./bsd -D_XOPEN_SOURCE_EXTENDED -I/opt/theos-git/include/ $(RC_CFLAGS)
+ LIB_LDFLAGS	= -framework CoreFoundation -framework IOKit
+ BIN_LDFLAGS	= -lpanelw -lncursesw -lutil
+ LDFLAGS		= $(LIB_LDFLAGS) $(BIN_LDFLAGS)
+@@ -16,14 +18,14 @@ LDFLAGS		+= -Wl,-syslibroot,$(SDKROOT)
+ endif
+ INSTALL		= install -c
+ LN		= ln
+-STRIP		= strip
+-AR		= ar
+-RANLIB		= ranlib
++STRIP		= arm-apple-darwin11-strip
++AR		= arm-apple-darwin11-ar
++RANLIB		= arm-apple-darwin11-ranlib
+ 
+ SRCROOT		= .
+ OBJROOT		= $(SRCROOT)
+ SYMROOT		= $(OBJROOT)
+-DSTROOT		=
++DSTROOT		= $(DESTDIR)
+ 
+ # File lists related to the library.
+ LIB		:= libtop.a
+@@ -81,7 +83,8 @@ installlib : $(SYMROOT)/$(LIB)
+ 
+ installbin : $(SYMROOT)/$(BIN)
+ 	$(INSTALL) -d $(DSTROOT)/usr/bin
+-	$(INSTALL) -s -m 4755 $< $(DSTROOT)/usr/bin
++	$(INSTALL) -m 4755 $< $(DSTROOT)/usr/bin
++	$(STRIP) $(DSTROOT)/usr/bin/$(BIN)
+ 
+ installman :
+ 	$(INSTALL) -d $(DSTROOT)/usr/share/man/man1
+@@ -97,11 +100,8 @@ $(OBJROOT)/%.o : $(SRCROOT)/%.c \
+ $(SYMROOT)/$(LIB) : $(patsubst %.c,$(SRCROOT)/%.c,$(LIB_SRCS)) \
+ 	     $(patsubst %.h,$(SRCROOT)/%.h,$(LIB_HDRS) $(LIB_PHDRS))
+ 	$(CC) -c $(CPPFLAGS) $(CFLAGS) $(LIB_SRCS)
+-	mv *.o $(OBJROOT)
+ 	$(AR) cru $@ $(patsubst %.c,$(OBJROOT)/%.o,$(LIB_SRCS))
+ 	$(RANLIB) $@
+ 
+ $(SYMROOT)/$(BIN) : $(patsubst %.c,$(OBJROOT)/%.o,$(BIN_SRCS)) $(SYMROOT)/$(LIB)
+ 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+-	chown root $@
+-	chmod 4755 $@

@@ -1,0 +1,29 @@
+Index: top-39/Makefile
+===================================================================
+--- top-39.orig/Makefile
++++ top-39/Makefile
+@@ -6,9 +6,9 @@ SHELL		:= /bin/sh
+ 
+ CC		= cc
+ CPPFLAGS	= -I$(SRCROOT) -DTOP_DEPRECATED #-DTOP_JAGUAR
+-CFLAGS		= -Os -g3 -no-cpp-precomp -Wall $(RC_CFLAGS)
++CFLAGS		= -Os -g3 -no-cpp-precomp -Wall -D_XOPEN_SOURCE_EXTENDED $(RC_CFLAGS)
+ LIB_LDFLAGS	= -framework CoreFoundation -framework IOKit
+-BIN_LDFLAGS	= -lpanel -lncurses -lutil
++BIN_LDFLAGS	= -lpanelw -lncursesw -lutil
+ LDFLAGS		= $(LIB_LDFLAGS) $(BIN_LDFLAGS)
+ ifneq ($(SDKROOT),)
+ CFLAGS		+= -isysroot $(SDKROOT)
+Index: top-39/disp.c
+===================================================================
+--- top-39.orig/disp.c
++++ top-39/disp.c
+@@ -22,7 +22,7 @@
+ 
+ #include <signal.h>
+ 
+-#include <curses.h>
++#include <ncursesw/curses.h>
+ #include <panel.h>
+ 
+ #include <string.h>

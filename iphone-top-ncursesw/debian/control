@@ -1,0 +1,12 @@
+Source: top
+Section: Administration
+Priority: important
+Maintainer: Faheem Pervez <myemailiseasily@obtain.ed>
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.4
+
+Package: top
+Architecture: iphoneos-arm
+Depends: ncurses (>= 5.7), ${misc:Depends}
+Description: at-a-glance process watching tool
+ Built against libncursesw to workaround iOS 7 oddity

@@ -1,0 +1,10 @@
+01_missing_headers.patch
+02_fix_some_warnings.patch
+03_link_with_ncursesw
+04_remove_deprecated_mach_vm_calls
+05_arm_shared_region_scan
+06_CC_Makefile_fixes.patch
+07_saurik_fix_escape.patch
+08_saurik_fix_mactypes.diff
+09_saurik_fix_stability.patch
+10_saurik_fix_rprvt.patch

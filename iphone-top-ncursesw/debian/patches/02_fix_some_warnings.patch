@@ -1,0 +1,27 @@
+Index: top-39/samp.c
+===================================================================
+--- top-39.orig/samp.c
++++ top-39/samp.c
+@@ -295,9 +295,6 @@ samp_p_header_print(void)
+ 	  idleticks -=  samp_tsamp->p_cpu.cpu_ticks[CPU_STATE_IDLE];
+ 	}
+ 
+-	if(userticks < 0) userticks = 0;
+-	if(systicks < 0)   systicks = 0;
+-	if(idleticks < 0) idleticks = 0;
+ 	totalticks = userticks + systicks + idleticks;
+ 
+ 	if (totalticks != 0) {
+Index: top-39/Makefile
+===================================================================
+--- top-39.orig/Makefile
++++ top-39/Makefile
+@@ -92,7 +92,7 @@ installman :
+ 
+ $(OBJROOT)/%.o : $(SRCROOT)/%.c \
+ 	     $(patsubst %.h,$(SRCROOT)/%.h,$(LIB_HDRS) $(LIB_PHDRS) $(BIN_HDRS))
+-	$(CC) -c $(CPPFLAGS) $(CFLAGS) -mdynamic-no-pic $< -o $@
++	$(CC) -c $(CPPFLAGS) $(CFLAGS) $< -o $@
+ 
+ $(SYMROOT)/$(LIB) : $(patsubst %.c,$(SRCROOT)/%.c,$(LIB_SRCS)) \
+ 	     $(patsubst %.h,$(SRCROOT)/%.h,$(LIB_HDRS) $(LIB_PHDRS))
