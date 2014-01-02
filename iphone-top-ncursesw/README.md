@@ -1,7 +1,7 @@
 Top for iOS built against libncursesw
 ===========================================================================
 
-For some reason, under iOS 7, attempting to run any ncurses program linked against the "normal", non-Unicode version results in a "Error opening terminal" message. I found linking the same program to the Unicode version, ncursesw, works for some reason.
+For some reason, under iOS 7, attempting to run any ncurses program that calls initscr() and is linked against the "normal", non-Unicode version results in a "Error opening terminal" message. I found linking the same program to the Unicode version, ncursesw, works for some reason.
 
 Since `top` is the only such program I use, here it is...
 
