@@ -7,7 +7,7 @@ Index: top-39/libtop.c
  static bool 
  in_shared_region(mach_vm_address_t addr) {
 +  if (addr >= SHARED_REGION_BASE_ARM &&
-+      addr <= (SHARED_REGION_BASE_ARM + SHARED_REGION_BASE_ARM))
++      addr <= (SHARED_REGION_BASE_ARM + SHARED_REGION_SIZE_ARM))
 +    return true;
    if (addr >= SHARED_REGION_BASE_PPC &&
        addr <= (SHARED_REGION_BASE_PPC + SHARED_REGION_SIZE_PPC))
